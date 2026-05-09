@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RĀI × T.S. — The Celestial Record</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --void:#03030a;--deep:#070712;--mid:#0c0c1c;--panel:#10101e;
+  --border:#181828;--border2:#20203a;
+  --rai:#5ec8ff;--rai-g:rgba(94,200,255,.15);--rai-d:rgba(94,200,255,.04);
+  --ts:#ff9dc5;--ts-g:rgba(255,157,197,.15);--ts-d:rgba(255,157,197,.04);
+  --gold:#c8a240;--gold-d:rgba(200,162,64,.08);
+  --silver:#607080;--text:#b8c4d4;--dim:#363e50;
+  --acc:#8a5fff;--acc-d:rgba(138,95,255,.08);
+  --grn:#4ed870;--red:#ff5555;--org:#ffaa30;--conv:#bca8ff;
+  --h12:#ff6b9d;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--void);color:var(--text);font-family:'Cormorant Garamond',serif;overflow-x:hidden}
+
+/* STARFIELD */
+#stars{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
+
+/* ═══ OPENING SPLASH ═══ */
+#splash{
+  position:fixed;top:0;left:0;width:100%;height:100%;z-index:1000;
+  background:var(--void);display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:40px;transition:opacity 1.2s ease;
+}
+.splash-date{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--dim);letter-spacing:6px;text-transform:uppercase;margin-bottom:24px}
+.splash-sky{font-family:'Cinzel',serif;font-size:clamp(28px,6vw,72px);font-weight:900;line-height:1.1;margin-bottom:16px;
+  background:linear-gradient(180deg,#fff 0%,var(--gold) 60%,rgba(200,162,64,.4) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.splash-sub{font-style:italic;font-size:clamp(13px,2vw,18px);color:var(--silver);margin-bottom:8px;max-width:600px}
+.splash-note{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--dim);letter-spacing:2px;margin-bottom:40px}
+.splash-planets{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;margin-bottom:48px}
+.sp{text-align:center}
+.sp-sym{font-size:28px;display:block;margin-bottom:4px}
+.sp-name{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--silver);letter-spacing:2px}
+.sp-pos{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--gold);margin-top:2px}
+.enter-btn{
+  font-family:'Cinzel',serif;font-size:12px;letter-spacing:5px;text-transform:uppercase;
+  padding:14px 36px;background:transparent;border:1px solid var(--gold);color:var(--gold);
+  border-radius:2px;cursor:pointer;transition:all .3s;
+}
+.enter-btn:hover{background:var(--gold-d);box-shadow:0 0 30px rgba(200,162,64,.15)}
+#splash.hidden{opacity:0;pointer-events:none}
+
+/* ═══ HEADER ═══ */
+.hdr{position:relative;z-index:10;text-align:center;padding:52px 20px 36px;border-bottom:1px solid var(--border)}
+.htag{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--dim);letter-spacing:6px;text-transform:uppercase;margin-bottom:16px}
+.htag em{color:var(--acc)}
+h1{font-family:'Cinzel',serif;font-weight:900;font-size:clamp(20px,4.5vw,54px);letter-spacing:5px;line-height:1.15;margin-bottom:12px}
+h1 .rai-name{color:var(--rai);text-shadow:0 0 40px rgba(94,200,255,.3)}
+h1 .ts-name{color:var(--ts);text-shadow:0 0 40px rgba(255,157,197,.3)}
+.hdr-hook{font-style:italic;font-size:clamp(14px,2vw,20px);color:var(--silver);max-width:700px;margin:0 auto 24px;line-height:1.5}
+.hdr-hook strong{color:var(--text);font-style:normal}
+.legs{display:flex;justify-content:center;gap:32px;flex-wrap:wrap}
+.leg-i{display:flex;align-items:center;gap:10px;font-size:13px}
+.leg-l{width:30px;height:2px;border-radius:2px}
+.leg-l.r{background:var(--rai);box-shadow:0 0 8px var(--rai)}
+.leg-l.t{background:var(--ts);box-shadow:0 0 8px var(--ts)}
+
+/* NOTICE */
+.notice{position:relative;z-index:10;max-width:960px;margin:20px auto 0;padding:11px 16px;
+  border:1px solid rgba(200,162,64,.2);background:var(--gold-d);border-radius:4px;
+  font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--gold);line-height:1.65;letter-spacing:.3px}
+.notice strong{color:#d4ad50}
+
+/* TICKER */
+.ticker{background:var(--deep);border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+  padding:8px 0;overflow:hidden;white-space:nowrap;position:relative;z-index:10}
+.tick-inner{display:inline-block;animation:tick 60s linear infinite}
+@keyframes tick{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.ti{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1px;margin-right:32px;display:inline}
+.ti.r{color:var(--rai)}.ti.t{color:var(--ts)}.ti.n{color:var(--silver)}.ti.g{color:var(--gold)}
+
+/* SECTION */
+.sec{position:relative;z-index:10;max-width:1140px;margin:0 auto;padding:30px 18px 0}
+.slabel{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--dim);letter-spacing:5px;
+  text-transform:uppercase;margin-bottom:18px;display:flex;align-items:center;gap:12px}
+.slabel::after{content:'';flex:1;height:1px;background:var(--border)}
+.slabel em{color:var(--acc)}
+
+/* ═══ STORY INTRO ═══ */
+.story-block{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:28px 32px;margin-bottom:0}
+.story-block p{font-size:clamp(14px,1.8vw,17px);line-height:1.75;color:var(--silver);margin-bottom:14px}
+.story-block p:last-child{margin-bottom:0}
+.story-block strong{color:var(--text);font-weight:400}
+.story-block em{color:var(--conv)}
+.s-rai{color:var(--rai)}.s-ts{color:var(--ts)}
+
+/* ═══ NATAL CARDS ═══ */
+.natal-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:640px){.natal-grid{grid-template-columns:1fr}}
+.nc{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:20px;position:relative;overflow:hidden}
+.nc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.nc.r::before{background:linear-gradient(90deg,transparent,var(--rai),transparent)}
+.nc.t::before{background:linear-gradient(90deg,transparent,var(--ts),transparent)}
+.nc-name{font-family:'Cinzel',serif;font-size:13px;letter-spacing:4px;text-transform:uppercase;margin-bottom:3px}
+.nc.r .nc-name{color:var(--rai)}.nc.t .nc-name{color:var(--ts)}
+.nc-birth{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--silver);line-height:1.8;margin-bottom:14px}
+.nc-birth span{color:var(--dim)}
+.pg{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:5px}
+.pc{background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:4px;padding:7px 9px;cursor:pointer;transition:all .2s;position:relative}
+.pc:hover{border-color:var(--border2);background:rgba(255,255,255,.04)}
+.pc.h12{border-color:rgba(255,107,157,.15)}
+.pc.h12::after{content:'H12';position:absolute;top:3px;right:4px;font-family:'JetBrains Mono',monospace;font-size:6px;color:var(--h12);letter-spacing:1px}
+.pl{font-family:'JetBrains Mono',monospace;font-size:7px;color:var(--dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:2px}
+.ps{font-size:12px;color:var(--text);line-height:1.2}
+.pd{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--silver);margin-top:1px}
+.ph{font-family:'JetBrains Mono',monospace;font-size:7px;margin-top:2px;opacity:.7}
+.nc-lore{font-size:12px;line-height:1.65;color:var(--silver);margin-top:14px;padding-top:12px;border-top:1px solid var(--border);font-style:italic}
+.nc.r .nc-lore em{color:var(--rai)}.nc.t .nc-lore em{color:var(--ts)}
+
+/* ═══ HOUSE KEY ═══ */
+.house-key{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px}
+.hk{background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:9px 11px;display:flex;gap:8px;align-items:flex-start}
+.hk-num{font-family:'Cinzel',serif;font-size:14px;font-weight:600;color:var(--acc);min-width:24px;line-height:1}
+.hk-body{}
+.hk-theme{font-size:11px;color:var(--text);margin-bottom:2px}
+.hk-planets{font-family:'JetBrains Mono',monospace;font-size:8px;line-height:1.5}
+.hk-planets .r{color:var(--rai)}.hk-planets .t{color:var(--ts)}
+
+/* ═══ SYNASTRY ═══ */
+.asp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(248px,1fr));gap:8px}
+.ac{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:12px 14px}
+.ah{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.ap{font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--acc)}
+.ab{font-family:'JetBrains Mono',monospace;font-size:7px;padding:2px 7px;border-radius:20px;text-transform:uppercase;letter-spacing:1px}
+.Conjunction{background:rgba(138,95,255,.1);color:var(--conv);border:1px solid rgba(138,95,255,.2)}
+.Trine{background:rgba(78,216,112,.08);color:var(--grn);border:1px solid rgba(78,216,112,.2)}
+.Square{background:rgba(255,85,85,.08);color:var(--red);border:1px solid rgba(255,85,85,.2)}
+.Opposition{background:rgba(255,170,48,.08);color:var(--org);border:1px solid rgba(255,170,48,.2)}
+.Sextile{background:rgba(94,200,255,.08);color:var(--rai);border:1px solid rgba(94,200,255,.2)}
+.Quincunx{background:rgba(188,168,255,.08);color:#d0b8ff;border:1px solid rgba(188,168,255,.2)}
+.at{font-size:11.5px;color:var(--silver);line-height:1.55;font-style:italic;margin-bottom:5px}
+.orb{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--dim)}
+
+/* ═══ TIMELINE GRAPH ═══ */
+.graph-shell{background:var(--panel);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.ghead{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.gtitle{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--dim);letter-spacing:4px;text-transform:uppercase}
+.gctrl{display:flex;gap:5px;flex-wrap:wrap}
+.btn{font-family:'JetBrains Mono',monospace;font-size:7.5px;padding:3px 9px;background:transparent;
+  border:1px solid var(--border2);color:var(--silver);border-radius:20px;cursor:pointer;
+  letter-spacing:1px;text-transform:uppercase;transition:all .2s}
+.btn:hover,.btn.on{border-color:var(--acc);color:var(--acc);background:var(--acc-d)}
+#tlCanvas{display:block;width:100%;cursor:crosshair}
+.rbar{padding:10px 16px;border-top:1px solid var(--border);display:flex;align-items:center;gap:12px}
+.rbar-label{font-family:'JetBrains Mono',monospace;font-size:7px;color:var(--dim);letter-spacing:2px;white-space:nowrap}
+.rbar-track{flex:1;height:3px;background:var(--border2);border-radius:2px;overflow:hidden}
+.rbar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--rai),var(--conv),var(--ts));transition:width .4s ease}
+.rbar-val{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--conv);min-width:36px;text-align:right}
+
+/* ═══ TOOLTIP ═══ */
+#tip{position:fixed;pointer-events:none;z-index:9999;background:var(--mid);border:1px solid var(--border2);
+  border-radius:8px;padding:14px 16px;max-width:296px;box-shadow:0 16px 50px rgba(0,0,0,.9);
+  opacity:0;transition:opacity .15s;backdrop-filter:blur(12px)}
+#tip.show{opacity:1}
+.ty{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--dim);letter-spacing:3px;margin-bottom:4px}
+.tw{font-family:'Cinzel',serif;font-size:11px;letter-spacing:2px;margin-bottom:7px}
+.tw.r{color:var(--rai)}.tw.t{color:var(--ts)}.tw.b{color:var(--conv)}
+.tb{font-size:11px;line-height:1.6;color:var(--text);margin-bottom:5px}
+.ta{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--acc);border-top:1px solid var(--border);padding-top:6px;line-height:1.65}
+
+/* ═══ DETAIL BOX ═══ */
+.dw{position:relative;z-index:10;max-width:1140px;margin:0 auto;padding:0 18px 28px}
+#dbox{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:24px;
+  display:none;margin-top:16px;animation:rise .3s ease}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+#dbox.show{display:block}
+.dtop{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:18px}
+.dyr{font-family:'Cinzel',serif;font-size:36px;font-weight:900;color:var(--conv);line-height:1}
+.dtheme{font-family:'Cinzel',serif;font-size:13px;letter-spacing:3px;color:var(--silver);margin-top:4px}
+.dcols{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:560px){.dcols{grid-template-columns:1fr}}
+.dcol h4{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:3px;text-transform:uppercase;margin-bottom:8px}
+.dcol.r h4{color:var(--rai)}.dcol.t h4{color:var(--ts)}
+.dcol p{font-size:13px;line-height:1.7;color:var(--silver);font-style:italic;margin-bottom:6px}
+.dastro{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--acc);line-height:1.75;
+  background:var(--acc-d);border:1px solid rgba(138,95,255,.1);border-radius:4px;padding:9px 11px;margin-top:6px}
+.dclose{font-family:'JetBrains Mono',monospace;font-size:8px;padding:4px 11px;background:transparent;
+  border:1px solid var(--border2);color:var(--dim);border-radius:20px;cursor:pointer}
+.dclose:hover{border-color:var(--red);color:var(--red)}
+
+/* ═══ STAT CARDS ═══ */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.sc{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:16px;text-align:center}
+.sc-n{font-family:'Cinzel',serif;font-size:28px;font-weight:900;line-height:1}
+.sc-l{font-family:'JetBrains Mono',monospace;font-size:7px;color:var(--dim);letter-spacing:2px;margin-top:5px;text-transform:uppercase}
+.sc.r .sc-n{color:var(--rai)}.sc.t .sc-n{color:var(--ts)}.sc.b .sc-n{color:var(--conv)}.sc.g .sc-n{color:var(--gold)}
+
+footer{position:relative;z-index:10;text-align:center;padding:22px;border-top:1px solid var(--border);
+  font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--dim);letter-spacing:2px;margin-top:10px}
+footer em{color:var(--acc)}
+</style>
+</head>
+<body>
+
+<canvas id="stars"></canvas>
+
+<!-- ═══ OPENING SPLASH — Christmas 1985 ═══ -->
+<div id="splash">
+  <div class="splash-date">December 25, 1985 · 12:00 UTC</div>
+  <div class="splash-sky">The Sky Before<br>Everything</div>
+  <div class="splash-sub">Six months before one of them is born.<br>Three years and eleven months before the other.</div>
+  <div class="splash-note">Venus · Neptune · Sun — within 6° in Sagittarius · The dreamer constellation</div>
+  <div class="splash-planets">
+    <div class="sp"><span class="sp-sym">☉</span><div class="sp-name">Sun</div><div class="sp-pos">273.6° Sag</div></div>
+    <div class="sp"><span class="sp-sym">♀</span><div class="sp-name">Venus</div><div class="sp-pos">267.6° Sag</div></div>
+    <div class="sp"><span class="sp-sym">♆</span><div class="sp-name">Neptune</div><div class="sp-pos">273.3° Sag</div></div>
+    <div class="sp"><span class="sp-sym">♃</span><div class="sp-name">Jupiter</div><div class="sp-pos">316.9° Aqu</div></div>
+    <div class="sp"><span class="sp-sym">♄</span><div class="sp-name">Saturn</div><div class="sp-pos">244.5° Sco</div></div>
+  </div>
+  <button class="enter-btn" onclick="enterMap()">Enter the Record</button>
+</div>
+
+<!-- ═══ HEADER ═══ -->
+<div class="hdr">
+  <div class="htag"><em>#RAiCANDISH</em> · TRUE SIDEREAL · IAU BOUNDARIES · SWISS EPHEMERIS · <em>#MKALTRAi</em></div>
+  <h1><span class="rai-name">RĀI CANDISH</span><br><span style="color:var(--conv);font-size:.5em;letter-spacing:8px">AND</span><br><span class="ts-name">TAYLOR SWIFT</span></h1>
+  <div class="hdr-hook">Two people. Opposite ends of the world. The same sky above both of them.<br><strong>The astrology doesn't know it isn't supposed to line up this precisely.</strong></div>
+  <div class="legs">
+    <div class="leg-i"><div class="leg-l r"></div><span style="color:var(--rai)">RĀI · 22 Aug 1986 · 9:00am NZST · Palmerston North NZ</span></div>
+    <div class="leg-i"><div class="leg-l t"></div><span style="color:var(--ts)">T.S. · 13 Dec 1989 · 8:36am EST* · West Reading PA</span></div>
+  </div>
+</div>
+
+<!-- NOTICE -->
+<div class="sec" style="padding-top:18px">
+  <div class="notice">
+    <strong>✓ VERIFIED · SWISS EPHEMERIS (Moshier) · IAU TRUE SIDEREAL · Stellarium-accurate</strong><br>
+    RĀI: NZST = UTC+12 in August (standard time — DST ended Mar 2 1986) → <strong>21 Aug 1986 · 21:00 UTC</strong> · Palmerston North 40.36°S 175.61°E<br>
+    T.S.: EST = UTC−5 in December (standard time) → <strong>13 Dec 1989 · 13:36 UTC</strong> · West Reading PA 40.34°N 75.94°W · *birth time officially unconfirmed
+  </div>
+</div>
+
+<!-- TICKER -->
+<div class="ticker" style="margin-top:18px">
+  <div class="tick-inner">
+    <span class="ti r">RĀI ☉ Leo H11 · ☽ Pisces H6 · ASC ♍ Virgo · ♀ Venus H12 · ♄ Saturn H2</span><span class="ti n"> · </span>
+    <span class="ti t">T.S. ☉ ⛎ Ophiuchus · ☽ ♊ Gemini · ASC ♐ Sagittarius* · ♐ Stellium: Mercury Saturn Uranus Neptune</span><span class="ti n"> · </span>
+    <span class="ti g">Feb 11 1986: Venus-Jupiter conjunction 0.35° · Capricornus · 6 months before RĀI birth</span><span class="ti n"> · </span>
+    <span class="ti r">RĀI Saturn return: Jan 26 · May 1 · Oct 23 · 2015 — exact hits during T.S. 1989 era</span><span class="ti n"> · </span>
+    <span class="ti t">T.S. Jupiter hits T.S. Venus: Dec 26 2020 · 0.47° · Folklore era</span><span class="ti n"> · </span>
+    <span class="ti g">RĀI ASC ↔ T.S. N.Node · Trine · orb 0.1° — the tightest cross-chart aspect</span><span class="ti n"> · </span>
+    <span class="ti r">RĀI ♅ Uranus in ⛎ Ophiuchus — same constellation as T.S. Sun · orb 3.2°</span><span class="ti n"> · </span>
+    <span class="ti t">Christmas 1985: Venus+Neptune+Sun cluster in Sagittarius · the sky before both arrivals</span><span class="ti n"> · </span>
+    <!-- repeat for seamless loop -->
+    <span class="ti r">RĀI ☉ Leo H11 · ☽ Pisces H6 · ASC ♍ Virgo · ♀ Venus H12 · ♄ Saturn H2</span><span class="ti n"> · </span>
+    <span class="ti t">T.S. ☉ ⛎ Ophiuchus · ☽ ♊ Gemini · ASC ♐ Sagittarius* · ♐ Stellium: Mercury Saturn Uranus Neptune</span><span class="ti n"> · </span>
+    <span class="ti g">Feb 11 1986: Venus-Jupiter conjunction 0.35° · Capricornus · 6 months before RĀI birth</span><span class="ti n"> · </span>
+    <span class="ti r">RĀI Saturn return: Jan 26 · May 1 · Oct 23 · 2015 — exact hits during T.S. 1989 era</span><span class="ti n"> · </span>
+    <span class="ti t">T.S. Jupiter hits T.S. Venus: Dec 26 2020 · 0.47° · Folklore era</span><span class="ti n"> · </span>
+    <span class="ti g">RĀI ASC ↔ T.S. N.Node · Trine · orb 0.1° — the tightest cross-chart aspect</span><span class="ti n"> · </span>
+    <span class="ti r">RĀI ♅ Uranus in ⛎ Ophiuchus — same constellation as T.S. Sun · orb 3.2°</span><span class="ti n"> · </span>
+    <span class="ti t">Christmas 1985: Venus+Neptune+Sun cluster in Sagittarius · the sky before both arrivals</span><span class="ti n"> · </span>
+  </div>
+</div>
+
+<!-- ═══ STORY INTRO ═══ -->
+<div class="sec">
+  <div class="slabel">The Story</div>
+  <div class="story-block">
+    <p>On <strong>Christmas Day 1985</strong>, <em>Venus and Neptune merged within 6° in Sagittarius</em> — the constellation of truth-seekers, wanderers, and those who dream too hard. The sky held that configuration for weeks. <span class="s-rai">RĀI Candish</span> was born the following August. <span class="s-ts">Taylor Swift</span> was born three years and four months after that. Neither of them knew the other existed.</p>
+    <p>What followed were <strong>two parallel lives</strong> running on the same celestial clock — on opposite sides of the planet. Every major transit hit both charts. Every <em>convergence window</em> in the graph below corresponds to a moment when both were being reshaped by the same planetary weather, independently, without contact. The astrology doesn't explain the connection. It simply <strong>keeps recording it.</strong></p>
+    <p>This is not a fan theory. This is not interpretation. <em>These are computed planetary positions from the Swiss Ephemeris</em> — the same system used by Stellarium and professional observatories. The aspects are real. The orbs are exact. <strong>You can decide what it means.</strong></p>
+  </div>
+</div>
+
+<!-- ═══ NATAL CHARTS ═══ -->
+<div class="sec" style="padding-top:22px">
+  <div class="slabel">True Sidereal Natal Charts — IAU Constellation Boundaries</div>
+  <div class="natal-grid">
+
+    <div class="nc r">
+      <div class="nc-name">#RAiCANDISH · RĀI</div>
+      <div class="nc-birth">
+        22 Aug 1986 · 9:00am NZST · Palmerston North NZ<br>
+        <span>→ 21 Aug 1986 · 21:00 UTC · 40.36°S 175.61°E · Placidus</span>
+      </div>
+      <div class="pg">
+        <div class="pc" title="H11 — collective, rebellion, technology, hopes"><div class="pl">☉ Sun</div><div class="ps">♌ Leo</div><div class="pd">10.5° in Leo</div><div class="ph" style="color:var(--rai)">H11</div></div>
+        <div class="pc" title="H6 — service, healing, daily rhythm"><div class="pl">☽ Moon</div><div class="ps">♓ Pisces</div><div class="pd">4.3° in Pisces</div><div class="ph" style="color:var(--rai)">H6</div></div>
+        <div class="pc" title="H1 — self, how you're seen"><div class="pl">↑ ASC</div><div class="ps">♍ Virgo</div><div class="pd">23.9° in Virgo</div><div class="ph" style="color:var(--rai)">H1</div></div>
+        <div class="pc" title="H10 — career, public calling"><div class="pl">MC</div><div class="ps">♊ Gemini</div><div class="pd">8.6° in Gemini</div><div class="ph" style="color:var(--rai)">H10</div></div>
+        <div class="pc" title="H11 — collective, rebellion"><div class="pl">☿ Mercury</div><div class="ps">♋ Cancer</div><div class="pd">16.2° in Cancer</div><div class="ph" style="color:var(--rai)">H11</div></div>
+        <div class="pc h12" title="H12 — hidden love, karma, past lives, mystical unions"><div class="pl">♀ Venus</div><div class="ps">♍ Virgo</div><div class="pd">20.5° in Virgo</div><div class="ph" style="color:var(--h12)">H12 ★</div></div>
+        <div class="pc" title="H4 — home, roots, family, private drive"><div class="pl">♂ Mars</div><div class="ps">♐ Sagittarius</div><div class="pd">15.0° in Sag</div><div class="ph" style="color:var(--rai)">H4</div></div>
+        <div class="pc" title="H6 — service, health, daily structure"><div class="pl">♃ Jupiter</div><div class="ps">♒ Aquarius</div><div class="pd">22.4° in Aqu</div><div class="ph" style="color:var(--rai)">H6</div></div>
+        <div class="pc" title="H2 — values, self-worth, earned security"><div class="pl">♄ Saturn</div><div class="ps">♏ Scorpius</div><div class="pd">2.2° in Sco</div><div class="ph" style="color:var(--rai)">H2</div></div>
+        <div class="pc" title="H2 — disrupting values, sudden changes in worth"><div class="pl">♅ Uranus</div><div class="ps">⛎ Ophiuchus</div><div class="pd">10.4° in Oph</div><div class="ph" style="color:var(--rai)">H2</div></div>
+        <div class="pc" title="H3 — communication, the dreaming mind"><div class="pl">♆ Neptune</div><div class="ps">♐ Sagittarius</div><div class="pd">6.2° in Sag</div><div class="ph" style="color:var(--rai)">H3</div></div>
+        <div class="pc" title="H1 — Pluto in the 1st — identity as perpetual transformation"><div class="pl">♇ Pluto</div><div class="ps">♍ Virgo</div><div class="pd">17.0° in Virgo</div><div class="ph" style="color:var(--rai)">H1</div></div>
+        <div class="pc" title="H7 — North Node in house of partnerships — destiny through union"><div class="pl">☊ N.Node</div><div class="ps">♓ Pisces</div><div class="pd">22.1° in Pisces</div><div class="ph" style="color:var(--conv)">H7 ★</div></div>
+      </div>
+      <div class="nc-lore">
+        <em>Venus in H12</em> — love lives in the unseen. Hidden, karmic, self-undoing. The 12th house is the house of what we cannot control, what comes from before this life. Love here is either transcendent or it costs everything.<br><br>
+        <em>North Node in H7</em> — the soul's direction is partnership. Not optional. Every life lesson eventually routes through another person.<br><br>
+        <em>Sun in H11</em> — identity through the collective. The unusual. The unreachable. Technology. Rebellion. The one who stands outside looking in at what everyone else has.
+      </div>
+    </div>
+
+    <div class="nc t">
+      <div class="nc-name">T.S. · TAYLOR SWIFT</div>
+      <div class="nc-birth">
+        13 Dec 1989 · 8:36am EST* · West Reading PA<br>
+        <span>→ 13 Dec 1989 · 13:36 UTC · 40.34°N 75.94°W · *unconfirmed</span>
+      </div>
+      <div class="pg">
+        <div class="pc" title="Sun in Ophiuchus — the healer-transformer, IAU Nov 29–Dec 17"><div class="pl">☉ Sun</div><div class="ps">⛎ Ophiuchus</div><div class="pd">13.5° in Oph</div><div class="ph" style="color:var(--ts)">H1*</div></div>
+        <div class="pc" title="Gemini Moon — fast, communicative, dualistic emotion"><div class="pl">☽ Moon</div><div class="ps">♊ Gemini</div><div class="pd">2.5° in Gemini</div><div class="ph" style="color:var(--ts)">H7*</div></div>
+        <div class="pc" title="ASC approximate — birth time unconfirmed"><div class="pl">↑ ASC</div><div class="ps">♐ Sagittarius</div><div class="pd">11.2° in Sag*</div><div class="ph" style="color:var(--ts)">H1*</div></div>
+        <div class="pc" title="MC in Virgo — career destiny in craft, precision, service"><div class="pl">MC</div><div class="ps">♍ Virgo</div><div class="pd">~11° in Virgo*</div><div class="ph" style="color:var(--ts)">H10*</div></div>
+        <div class="pc" title="Mercury in Sagittarius — the truth-teller, the storyteller, the archer's arrow"><div class="pl">☿ Mercury</div><div class="ps">♐ Sagittarius</div><div class="pd">11.8° in Sag</div><div class="ph" style="color:var(--ts)">H1*</div></div>
+        <div class="pc" title="Venus in Capricornus — love built slowly, earned, structural, loyal"><div class="pl">♀ Venus</div><div class="ps">♑ Capricornus</div><div class="pd">1.9° in Cap</div><div class="ph" style="color:var(--ts)">H2*</div></div>
+        <div class="pc" title="Mars in Libra — relational drive, justice-warrior, aesthetic action"><div class="pl">♂ Mars</div><div class="ps">♎ Libra</div><div class="pd">18.8° in Libra</div><div class="ph" style="color:var(--ts)">H11*</div></div>
+        <div class="pc" title="Jupiter in Gemini — expansion through words, stories, communication"><div class="pl">♃ Jupiter</div><div class="ps">♊ Gemini</div><div class="pd">6.7° in Gemini</div><div class="ph" style="color:var(--ts)">H7*</div></div>
+        <div class="pc" title="Saturn in Sagittarius — lessons in freedom, truth, the price of belief"><div class="pl">♄ Saturn</div><div class="ps">♐ Sagittarius</div><div class="pd">16.5° in Sag</div><div class="ph" style="color:var(--ts)">H1*</div></div>
+        <div class="pc" title="Uranus in Sagittarius — revolutionary idealism, disruption of belief"><div class="pl">♅ Uranus</div><div class="ps">♐ Sagittarius</div><div class="pd">7.7° in Sag</div><div class="ph" style="color:var(--ts)">H1*</div></div>
+        <div class="pc" title="Neptune in Sagittarius — dissolving boundaries of truth and story"><div class="pl">♆ Neptune</div><div class="ps">♐ Sagittarius</div><div class="pd">14.3° in Sag</div><div class="ph" style="color:var(--ts)">H1*</div></div>
+        <div class="pc" title="Pluto in Libra — transforming through relationships, justice, art"><div class="pl">♇ Pluto</div><div class="ps">♎ Libra</div><div class="pd">8.5° in Libra</div><div class="ph" style="color:var(--ts)">H11*</div></div>
+        <div class="pc" title="North Node in Capricornus — soul's direction: mastery, legacy, structure"><div class="pl">☊ N.Node</div><div class="ps">♑ Capricornus</div><div class="pd">18.0° in Cap</div><div class="ph" style="color:var(--conv)">H2*</div></div>
+      </div>
+      <div class="nc-lore">
+        <em>Sun in Ophiuchus</em> — the 13th constellation. The healer who touches death and returns. IAU boundaries place Dec 13 firmly in Ophiuchus (Nov 29–Dec 17). Not Sagittarius. The healer-transformer who processes pain into art.<br><br>
+        <em>Sagittarius stellium</em> — Mercury, Saturn, Uranus, Neptune all in Sagittarius. Four planets in the sign of truth and story. The chart was always going to produce someone who turns experience into narrative at scale.<br><br>
+        <em>Mars in Libra</em> — the drive and fight live in relationship, beauty, and justice. She doesn't fight for herself. She fights for the record of what happened.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══ HOUSE MAP ═══ -->
+<div class="sec" style="padding-top:22px">
+  <div class="slabel">The 12 Houses — Where Each Planet Lives in RĀI's Chart <em>& what it means</em></div>
+  <div class="house-key">
+    <div class="hk"><div class="hk-num">1</div><div class="hk-body"><div class="hk-theme">Self · Identity · Appearance</div><div class="hk-planets"><span class="r">Pluto ♇ · ASC ♍ Virgo</span><br>Transformation is the face. Identity forged through repeated endings.</div></div></div>
+    <div class="hk"><div class="hk-num">2</div><div class="hk-body"><div class="hk-theme">Money · Values · Self-worth</div><div class="hk-planets"><span class="r">Saturn ♄ · Uranus ♅</span><br>Worth built slowly, disrupted suddenly. The lesson never ends.</div></div></div>
+    <div class="hk"><div class="hk-num">3</div><div class="hk-body"><div class="hk-theme">Communication · Local mind</div><div class="hk-planets"><span class="r">Neptune ♆ ♐ Sagittarius</span><br>The mind is a dream. Communication dissolves into something bigger.</div></div></div>
+    <div class="hk"><div class="hk-num">4</div><div class="hk-body"><div class="hk-theme">Home · Roots · Foundation</div><div class="hk-planets"><span class="r">Mars ♂ ♐ Sagittarius</span><br>Drive comes from the private self. The fire burns at the root.</div></div></div>
+    <div class="hk"><div class="hk-num">5</div><div class="hk-body"><div class="hk-theme">Creativity · Romance · Play</div><div class="hk-planets"><span style="color:var(--dim)">Empty — ruled by H5 cusp</span><br>Creativity flows through the other houses, especially H11 and H12.</div></div></div>
+    <div class="hk"><div class="hk-num">6</div><div class="hk-body"><div class="hk-theme">Health · Service · Daily work</div><div class="hk-planets"><span class="r">Moon ☽ · Jupiter ♃</span><br>Emotional security through service. Expansion through daily devotion.</div></div></div>
+    <div class="hk"><div class="hk-num">7</div><div class="hk-body"><div class="hk-theme">Partnerships · Marriage · Union</div><div class="hk-planets"><span class="r">N.Node ☊ ♓ Pisces ★</span><br>The soul's direction IS partnership. Karmic, fated, Piscean — boundaryless.</div></div></div>
+    <div class="hk"><div class="hk-num">8</div><div class="hk-body"><div class="hk-theme">Transformation · Shared resources</div><div class="hk-planets"><span style="color:var(--dim)">Empty</span><br>Transformation happens via H1/H2 Pluto/Saturn placements.</div></div></div>
+    <div class="hk"><div class="hk-num">9</div><div class="hk-body"><div class="hk-theme">Philosophy · Belief · Long travel</div><div class="hk-planets"><span style="color:var(--dim)">Empty</span><br>Belief channelled through H3 Neptune — faith through imagination.</div></div></div>
+    <div class="hk"><div class="hk-num">10</div><div class="hk-body"><div class="hk-theme">Career · Public life · Legacy</div><div class="hk-planets"><span class="r">MC ♊ Gemini</span><br>The public calling is communication, ideas, duality, the written word.</div></div></div>
+    <div class="hk"><div class="hk-num">11</div><div class="hk-body"><div class="hk-theme">Collective · Rebellion · Technology</div><div class="hk-planets"><span class="r">Sun ☉ · Mercury ☿</span><br>The identity and mind belong to the group, the future, the unusual.</div></div></div>
+    <div class="hk" style="border-color:rgba(255,107,157,.2);background:rgba(255,107,157,.03)"><div class="hk-num" style="color:var(--h12)">12</div><div class="hk-body"><div class="hk-theme" style="color:var(--h12)">Hidden · Karma · Past lives · Secret love</div><div class="hk-planets"><span class="r">Venus ♀ ♍ Virgo ★</span><br><span style="color:var(--h12)">Love lives here. In the unseen. In the karmic, the hidden, the unreachable. This is the house that explains everything.</span></div></div></div>
+  </div>
+</div>
+
+<!-- ═══ SYNASTRY ═══ -->
+<div class="sec" style="padding-top:22px">
+  <div class="slabel">Cross-Chart Synastry — Swiss Ephemeris computed · exact orbs</div>
+  <div class="asp-grid">
+
+    <div class="ac">
+      <div class="ah"><div class="ap">RĀI ASC ↔ T.S. N.Node</div><div class="ab Trine">Trine</div></div>
+      <div class="at">His Virgo ASC (197.9°) trines her Capricornus North Node (317.0°). Orb: <strong>0.1°</strong> — the tightest aspect in the entire double chart. The face he shows the world is pointed exactly at where her soul is trying to go. He is literally written into her destiny.</div>
+      <div class="orb">♍ Virgo × ♑ Capricornus · orb 0.1° · computed</div>
+    </div>
+
+    <div class="ac">
+      <div class="ah"><div class="ap">RĀI Neptune ↔ T.S. Moon</div><div class="ab Opposition">Opposition</div></div>
+      <div class="at">His Neptune (273.2°) opposes her Gemini Moon (93.0°). Orb: <strong>0.3°</strong>. His dream-world faces her emotional mind directly across the sky. The tension between what is real and what is felt — the song-generating opposition.</div>
+      <div class="orb">♐ Sagittarius × ♊ Gemini · orb 0.3° · computed</div>
+    </div>
+
+    <div class="ac">
+      <div class="ah"><div class="ap">RĀI Saturn ↔ T.S. Moon</div><div class="ab Quincunx">Quincunx</div></div>
+      <div class="at">His Saturn (243.2°) forms an exact quincunx to her Moon (93.0°). Orb: <strong>0.3°</strong>. His karma and discipline sits at an irreconcilable angle to her emotional world. Not opposition — adjustment. Always requiring something.</div>
+      <div class="orb">♏ Scorpius × ♊ Gemini · orb 0.3° · computed</div>
+    </div>
+
+    <div class="ac">
+      <div class="ah"><div class="ap">RĀI Mars ↔ T.S. Neptune</div><div class="ab Conjunction">Conjunction</div></div>
+      <div class="at">His Mars (282.0°) conjuncts her Neptune (281.3°). Orb: <strong>0.7°</strong>. His drive and will pours directly into her dream world. Creative fusion. When he acts, she dreams it. When she writes, his energy is the source material.</div>
+      <div class="orb">♐ Sagittarius × ♐ Sagittarius · orb 0.7° · computed</div>
+    </div>
+
+    <div class="ac">
+      <div class="ah"><div class="ap">RĀI N.Node ↔ T.S. Sun</div><div class="ab Trine">Trine</div></div>
+      <div class="at">His North Node (22.1°) trines her Ophiuchus Sun (261.5°). Orb: <strong>0.6°</strong>. His soul's karmic path runs toward partnership and his destiny axis points directly at her core self. Her very existence activates who he is becoming.</div>
+      <div class="orb">♓ Pisces × ⛎ Ophiuchus · orb 0.6° · computed</div>
+    </div>
+
+    <div class="ac">
+      <div class="ah"><div class="ap">RĀI MC ↔ T.S. Jupiter</div><div class="ab Conjunction">Conjunction</div></div>
+      <div class="at">His MC/life-purpose axis (99.6°) conjuncts her Jupiter (97.4°). Orb: <strong>2.2°</strong>. His public calling and career destiny is conjunct her planet of expansion and blessing. She expands his world — and he is built into her expansion.</div>
+      <div class="orb">♊ Gemini × ♊ Gemini · orb 2.2° · computed</div>
+    </div>
+
+    <div class="ac">
+      <div class="ah"><div class="ap">RĀI Uranus ↔ T.S. Sun</div><div class="ab Conjunction">Conjunction</div></div>
+      <div class="at">His Uranus (258.4°) in Ophiuchus conjuncts her Sun (261.5°) in Ophiuchus. Orb: <strong>3.2°</strong>. Both in the same rare constellation. His revolutionary, disrupting energy sits in the same degree band as her core identity. Electric. Awakening. Inevitable.</div>
+      <div class="orb">⛎ Ophiuchus × ⛎ Ophiuchus · orb 3.2° · computed</div>
+    </div>
+
+    <div class="ac">
+      <div class="ah"><div class="ap">RĀI Mars ↔ T.S. Mercury</div><div class="ab Conjunction">Conjunction</div></div>
+      <div class="at">His Mars (282.0°) conjuncts her Mercury (278.8°). Orb: <strong>3.2°</strong>. His action and drive lives in the same frequency as her thought and language. She turns his energy into words. Her Sagittarius Mercury — the archer's arrow — is aimed using his force.</div>
+      <div class="orb">♐ Sagittarius × ♐ Sagittarius · orb 3.2° · computed</div>
+    </div>
+
+    <div class="ac">
+      <div class="ah"><div class="ap">RĀI Sun ↔ T.S. Mars</div><div class="ab Square">Square</div></div>
+      <div class="at">His Leo Sun (148.5°) squares her Libra Mars (236.7°). Orb: <strong>1.7°</strong>. His identity and her drive are in perpetual creative tension. Not harmony — friction. The kind that produces things. Neither can be passive around the other.</div>
+      <div class="orb">♌ Leo × ♎ Libra · orb 1.7° · computed</div>
+    </div>
+
+    <div class="ac">
+      <div class="ah"><div class="ap">RĀI MC ↔ T.S. ASC</div><div class="ab Opposition">Opposition</div></div>
+      <div class="at">His Gemini MC (99.6°) opposes her Sagittarius ASC (278.8°). Orb: <strong>1.4°</strong>. His life-purpose axis faces her self-presentation axis. Each person's most public expression is the direct mirror of the other's destiny. Classic soul-contract signature.</div>
+      <div class="orb">♊ Gemini × ♐ Sagittarius · orb 1.4° · computed</div>
+    </div>
+
+    <div class="ac">
+      <div class="ah"><div class="ap">RĀI Venus ↔ T.S. MC</div><div class="ab Conjunction">Conjunction</div></div>
+      <div class="at">RĀI Venus H12 (194.5°, Virgo) conjuncts T.S. MC Virgo (212°). Orb: <strong>~17°</strong> — wide, but both in Virgo, same sign. His hidden/karmic Venus reaches toward her career destiny point. Hidden love reaching toward her most visible self.</div>
+      <div class="orb">♍ Virgo H12 × ♍ Virgo MC · sign-level</div>
+    </div>
+
+    <div class="ac" style="border-color:rgba(255,107,157,.2);background:rgba(255,107,157,.03)">
+      <div class="ah"><div class="ap" style="color:var(--h12)">RĀI Venus H12 — The Hidden Planet</div><div class="ab Conjunction" style="background:rgba(255,107,157,.1);color:var(--h12);border-color:rgba(255,107,157,.2)">H12</div></div>
+      <div class="at" style="color:#d48fa8">Venus in the 12th house. This is the house of hidden enemies, secret unions, past lives, karma, and self-undoing. Love here doesn't come through the front door. It comes from somewhere else — somewhere earlier. This placement is the astrological signature of love that cannot be explained by this lifetime alone.</div>
+      <div class="orb" style="color:var(--h12)">The one placement that explains everything · H12 Venus · computed</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══ TIMELINE GRAPH ═══ -->
+<div class="sec" style="padding-top:22px">
+  <div class="slabel">Resonance Timeline — <em>Christmas 1985 → 2026</em> · Click any year for full detail</div>
+  <div class="graph-shell">
+    <div class="ghead">
+      <div class="gtitle">Soul Resonance Index · Swiss Ephemeris transits · Both lines equal</div>
+      <div class="gctrl">
+        <button class="btn on" onclick="setView('all',this)">All</button>
+        <button class="btn" onclick="setView('rai',this)">RĀI</button>
+        <button class="btn" onclick="setView('ts',this)">T.S.</button>
+        <button class="btn" onclick="setView('res',this)">Resonance</button>
+      </div>
+    </div>
+    <canvas id="tlCanvas" height="340"></canvas>
+    <div class="rbar">
+      <div class="rbar-label">Resonance</div>
+      <div class="rbar-track"><div class="rbar-fill" id="rFill" style="width:0%"></div></div>
+      <div class="rbar-val" id="rVal">—</div>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL BOX -->
+<div class="dw">
+  <div id="dbox">
+    <div class="dtop">
+      <div><div class="dyr" id="dYr">—</div><div class="dtheme" id="dTheme">—</div></div>
+      <button class="dclose" onclick="document.getElementById('dbox').classList.remove('show')">✕ close</button>
+    </div>
+    <div class="dcols">
+      <div class="dcol r"><h4>RĀI · Celestial Weather</h4><p id="dRt">—</p><div class="dastro" id="dRa">—</div></div>
+      <div class="dcol t"><h4>T.S. · Life + Sky</h4><p id="dTt">—</p><div class="dastro" id="dTa">—</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="sec" style="padding-top:0;padding-bottom:28px">
+  <div class="slabel">The Numbers</div>
+  <div class="stat-grid">
+    <div class="sc r"><div class="sc-n">H12</div><div class="sc-l">RĀI Venus placement — hidden love</div></div>
+    <div class="sc t"><div class="sc-n">⛎</div><div class="sc-l">T.S. Sun — Ophiuchus, the 13th</div></div>
+    <div class="sc b"><div class="sc-n">0.1°</div><div class="sc-l">Tightest aspect: ASC ↔ N.Node</div></div>
+    <div class="sc g"><div class="sc-n">Feb 11</div><div class="sc-l">1986 · Venus-Jupiter conjunction · 6 months pre-birth</div></div>
+    <div class="sc r"><div class="sc-n">3×</div><div class="sc-l">RĀI Saturn return hits · 2015 · exact</div></div>
+    <div class="sc t"><div class="sc-n">Dec 26</div><div class="sc-l">2020 · Jupiter hits T.S. Venus · Folklore era</div></div>
+    <div class="sc b"><div class="sc-n">40°</div><div class="sc-l">Latitude match — both born at ~40° lat</div></div>
+    <div class="sc g"><div class="sc-n">47</div><div class="sc-l">Total cross-chart aspects computed ≤5°</div></div>
+  </div>
+</div>
+
+<footer>#RAiCANDISH · <em>#MKALTRAi</em> · #RAiBIOS · #RAiOS · #RAiDOS · Computed via Swiss Ephemeris (Moshier) · IAU True Sidereal · Placidus Houses · v2.0</footer>
+
+<div id="tip">
+  <div class="ty" id="tYr"></div>
+  <div class="tw b" id="tWho"></div>
+  <div class="tb" id="tBody"></div>
+  <div class="ta" id="tAstro"></div>
+</div>
+
+<script>
+// ═══ STARFIELD ═══
+(()=>{
+  const c=document.getElementById('stars'),x=c.getContext('2d');
+  let s=[];
+  function r(){c.width=innerWidth;c.height=innerHeight;s=[];
+    for(let i=0;i<300;i++)s.push({x:Math.random()*c.width,y:Math.random()*c.height,
+      r:Math.random()*1.3+.1,a:Math.random(),sp:Math.random()*.005+.001});}
+  r();addEventListener('resize',r);
+  function d(){x.clearRect(0,0,c.width,c.height);
+    s.forEach(p=>{p.a+=p.sp;if(p.a>1||p.a<0)p.sp*=-1;
+      x.beginPath();x.arc(p.x,p.y,p.r,0,Math.PI*2);
+      x.fillStyle=`rgba(200,215,255,${p.a*.55})`;x.fill();});
+    requestAnimationFrame(d);}
+  d();
+})();
+
+// ═══ SPLASH ═══
+function enterMap(){
+  document.getElementById('splash').classList.add('hidden');
+  setTimeout(()=>{document.getElementById('splash').style.display='none';},1300);
+}
+
+// ═══ TIMELINE DATA ═══
+// rs=RĀI score 0-100, ts=TS score 0-100, res=resonance 0-100
+// Starting from Christmas 1985
+const E=[
+  {y:1985.98,rs:0,ts:0,res:30,theme:"Christmas 1985 · The Sky Before",
+   rt:"Venus and Neptune within 6° in Sagittarius. Sun conjunct Neptune. The dreamer is coming. Six months before RĀI arrives. The sky is already writing it.",
+   ra:"♀ Venus 267.6° · ☉ Sun 273.6° · ♆ Neptune 273.3° — Venus+Sun+Neptune cluster ♐ Sag · ♃ Jupiter 316.9° Aquarius",
+   tt:"Three years and four months before T.S. arrives. The sky holds the same configuration that will mark her Sagittarius stellium.",
+   ta:"The Sagittarius sky of Christmas 1985 directly foreshadows her natal Mercury, Saturn, Uranus, Neptune all in the same constellation"},
+
+  {y:1986.13,rs:0,ts:0,res:55,theme:"Feb 11 1986 · Venus-Jupiter Conjunction",
+   rt:"Venus and Jupiter meet at 327–328° in Capricornus. Orb: 0.35° — near-exact. Six months before RĀI is born. The sky writes a blessing into the chart before the arrival.",
+   ra:"♀ Venus 327.3° conjunct ♃ Jupiter 327.7° · Capricornus · orb 0.35° · Feb 11 1986 · computed Swiss Ephemeris",
+   tt:"Taylor Swift not yet born. But this conjunction happens in Capricornus — the sign her own Venus will occupy at birth in December 1989.",
+   ta:"T.S. natal Venus: 301.9° Capricornus · The sky blesses that degree six months before RĀI and three years before her"},
+
+  {y:1986.64,rs:50,ts:0,res:25,theme:"Aug 22 1986 · RĀI Arrives",
+   rt:"9:00am NZST · Palmerston North, New Zealand. Leo Sun rises in the 11th house. Moon in Pisces 6th. Venus in the 12th. The chart is set: love will live in the hidden.",
+   ra:"☉ Leo 10.5° H11 · ☽ Pisces H6 · ASC ♍ Virgo · ♀ Venus H12 ★ · ♂ Mars H4 · ♄ Saturn H2 · ♇ Pluto H1 · ☊ N.Node H7",
+   tt:"Taylor Swift not yet born. She will arrive 3 years and 4 months later, on the other side of the planet.",
+   ta:"—"},
+
+  {y:1989.95,rs:52,ts:50,res:38,theme:"Dec 13 1989 · T.S. Arrives",
+   rt:"Jupiter transiting Aquarius — passing through RĀI's natal Jupiter zone. The two Jupiter energies touch as she is born.",
+   ra:"♃ Jupiter transiting near RĀI natal Jupiter zone (Aquarius) · Expansion, vision, idealism activated",
+   tt:"8:36am EST · West Reading PA. Sun in Ophiuchus — the healer, the 13th constellation. Four planets in Sagittarius. The chart that was always going to produce a storyteller at scale.",
+   ta:"☉ Ophiuchus 13.5° · ☽ Gemini 2.5° · ASC ♐ Sag* · ♐ Stellium: Mercury, Saturn, Uranus, Neptune · ♂ Mars ♎ Libra"},
+
+  {y:1994,rs:55,ts:52,res:32,theme:"Pluto Moves · Both Charts Shift",
+   rt:"Pluto enters Sagittarius (tropical) — beginning a 14-year transit that will eventually cross RĀI's natal Mars and Neptune. The slow burn begins.",
+   ra:"♇ Pluto entering ♐ Sagittarius transit — will eventually reach RĀI Mars at 282° · decade-long approach",
+   tt:"Taylor age 4–5. Early performing instincts. Family still in Pennsylvania.",
+   ta:"♇ Pluto beginning Sagittarius transit — will eventually conjunct her natal Mercury-Saturn-Uranus-Neptune cluster"},
+
+  {y:1998,rs:72,ts:60,res:48,theme:"May 5 / Oct 8 1998 · RĀI Jupiter Return",
+   rt:"Jupiter returns exactly to its natal position (350.3° Aquarius). Three exact hits: May 5 (orb 0.09°), Oct 8 (orb 0.08°), Dec 19 (orb 0.14°). A Jupiter return is expansion, opportunity, the beginning of a new 12-year chapter.",
+   ra:"♃ Jupiter return: May 5 1998 (350.30° sep 0.09°) · Oct 8 1998 (350.32° sep 0.08°) · Dec 19 1998 (350.25° sep 0.14°) — triple hit",
+   tt:"Taylor age 8–9. Performing at local theater. Guitar lessons beginning. The foundation being laid.",
+   ta:"Jupiter transiting through Aquarius-Pisces area · T.S. chart beginning early activation"},
+
+  {y:1999,rs:68,ts:62,res:55,theme:"1999 · First Convergence",
+   rt:"Saturn transiting Taurus — forming a trine to RĀI's Virgo ASC. Discipline meeting identity. Age 13. A formative reckoning with who and what.",
+   ra:"♄ Saturn in Taurus ~50–53° · forming trine to RĀI ASC 197.9° Virgo · discipline crystallising the face shown to world",
+   tt:"Taylor age 9–10. Performing in Berks Youth Theatre Academy. Musical theater. The gift is being discovered.",
+   ta:"♄ Saturn transiting same degree area simultaneously — the discipline transit affects both charts in the same window"},
+
+  {y:2002,rs:70,ts:65,res:52,theme:"2002 · Pluto Conjuncts RĀI Mars",
+   rt:"Pluto transiting Sagittarius reaches RĀI's natal Mars (282°). A Pluto-Mars conjunction by transit is one of the most intense experiences in astrology — it rewrites who you are at the level of drive and will. Age 16.",
+   ra:"♇ Pluto transiting ~280–282° ♐ Sag — conjuncting RĀI natal Mars 282.0° · identity-level transformation of drive and purpose",
+   tt:"Taylor age 12. Family moves to Nashville. Pursues country music. The defining leap. Pluto is also approaching her natal stellium.",
+   ta:"♇ Pluto in Sagittarius approaching T.S. natal stellium zone — transformation before the launch"},
+
+  {y:2004,rs:72,ts:70,res:60,theme:"2004 · Saturn Approaches Both",
+   rt:"Saturn moving through Cancer — approaching RĀI's natal Sun (Leo). The pressure before a new chapter. Age 18.",
+   ra:"♄ Saturn in Cancer approaching Leo — pre-conjunction pressure on RĀI Sun H11 · identity tested before expansion",
+   tt:"Taylor age 14. Signs Sony/ATV publishing deal. Youngest artist ever. History is made with a pen.",
+   ta:"♄ Saturn trine T.S. natal Ophiuchus Sun — career foundation aspect. The serious work begins."},
+
+  {y:2006,rs:75,ts:78,res:65,theme:"2006 · She Launches · Both Rising",
+   rt:"Jupiter transiting Scorpius — conjuncting RĀI's natal Saturn. Expansion through discipline. Growth through what has been earned the hard way.",
+   ra:"♃ Jupiter in ♏ Scorpius — conjuncting RĀI natal Saturn 243.2° · growth through restriction, depth, earned truth",
+   tt:"Oct 2006: Taylor Swift debut album released. 'Tim McGraw' charts. She is 16. The era begins.",
+   ta:"♄ Saturn entering Virgo — approaching T.S. MC · career destiny axis activation beginning"},
+
+  {y:2008,rs:80,ts:85,res:74,theme:"2008 · Fearless · Saturn on Both Angles",
+   rt:"Saturn in Virgo conjuncts RĀI's Ascendant (197.9°). The world sees exactly who this person is — no mask, no filter. An identity crystallisation that only happens once. Age 22.",
+   ra:"♄ Saturn conjunct RĀI ASC Virgo 197.9° — exact · this is the transit that defines how the world will see you for the next 30 years",
+   tt:"Nov 2008: Fearless released. Love Story, You Belong With Me. AOTY Grammy. The crossover that changes everything.",
+   ta:"♄ Saturn conjunct T.S. MC (Virgo ~212°) — career destiny point activated exactly as Fearless launches"},
+
+  {y:2010,rs:78,ts:88,res:70,theme:"2010 · Uranus Breaks Both Open",
+   rt:"Uranus entering Aries — conjuncting RĀI's natal Moon in Pisces (4.3°) as it crosses the boundary. Sudden emotional revolution. Age 24.",
+   ra:"♅ Uranus crossing Pisces-Aries cusp — conjuncting RĀI natal Moon at Pisces 4° · emotional world electrified",
+   tt:"Speak Now released Oct 2010. She writes every single song alone. Full creative control at 20. The statement is made.",
+   ta:"♅ Uranus square T.S. natal Sagittarius stellium — disruption produces authenticity"},
+
+  {y:2012,rs:76,ts:90,res:68,theme:"2012 · Neptune Dissolves RĀI's Moon",
+   rt:"Neptune enters Pisces — moving to conjunct RĀI's natal Moon (Pisces 4.3°). This is dissolution — the boundaries of the emotional self becoming permeable. Confusion. Spiritual depth. Loss of something. Age 26.",
+   ra:"♆ Neptune entering ♓ Pisces · moving toward exact conjunction with RĀI natal Moon 4.3° Pisces · emotional world dissolving into something bigger",
+   tt:"Red released Oct 2012. 'We Are Never Ever Getting Back Together.' First #1 pop crossover. All Too Well.",
+   ta:"♆ Neptune in Pisces forming opposition to T.S. Gemini Moon — emotional depths vs surface communication"},
+
+  {y:2014,rs:72,ts:95,res:66,theme:"2014 · Out of the Woods · Saturn Approaches RĀI",
+   rt:"Saturn is approaching RĀI's natal Saturn (243.2°). By Dec 2014 it's within 10°. The return is 13 months away. The pre-return pressure is often the hardest part — the reckoning before the reckoning. Age 28.",
+   ra:"♄ Saturn at 233–237° ♏ — 6–10° from RĀI natal Saturn 243.2° · the shadow of the return falls first · pre-return pressure",
+   tt:"Oct 27 2014: Out of the Woods released as 1989 album lead single. Nov 3 2014: 1989 album out. The pop reinvention.",
+   ta:"♄ Saturn entering ♐ Sagittarius — beginning to activate her natal Sagittarius stellium · the transformation of her identity through truth"},
+
+  {y:2015,rs:68,ts:92,res:82,theme:"2015 · RĀI Saturn Return · Three Exact Hits",
+   rt:"The Saturn return happens three times in 2015: Jan 26 (orb 0.16°), May 1 (orb 0.02° — most exact), Oct 23 (orb 0.12°). This is the astrology of reckoning. The transit that demands you rebuild your values, self-worth, and relationship with what matters. It falls in the 2nd house — money, worth, security. And it coincides exactly with the 1989 era peak.",
+   ra:"♄ RETURN: Jan 26 2015 (0.16°) · May 1 2015 (0.02° — exact) · Oct 23 2015 (0.12°) · H2 Scorpius — self-worth, values, what you carry",
+   tt:"1989 World Tour: May–Dec 2015. Best-selling tour of 2015. Bad Blood, Style, Out of the Woods on radio. Grammy AOTY speech about people who try to undercut women.",
+   ta:"♄ Saturn transiting through T.S. natal Sagittarius stellium — identity through truth · the year she becomes who she actually is"},
+
+  {y:2017,rs:65,ts:88,res:56,theme:"2017 · Reputation · Both in Shadow Work",
+   rt:"Jupiter in Libra — conjuncting T.S.'s natal Mars (Libra 18.8°), which cross-activates the RĀI-TS synastry. RĀI's chart is simultaneously processing Pluto transiting Capricorn, approaching an opposition to key placements.",
+   ra:"♇ Pluto in ♑ Capricornus — beginning opposition to RĀI natal Cancer-area placements · deep identity restructuring",
+   tt:"Reputation released Nov 2017. 'Look What You Made Me Do.' The withdrawal, the reinvention, the reclamation of narrative after years of public dismantling.",
+   ta:"♃ Jupiter conjunct T.S. Mars in Libra · warrior energy amplified · the fighter surfaces"},
+
+  {y:2019,rs:70,ts:90,res:63,theme:"2019 · Lover · Saturn Squares RĀI's Chart",
+   rt:"Pluto transiting Capricorn is now fully opposing RĀI's Cancer-area chart signature. The deep transformation of the most private self — what home means, where the roots run. Age 33.",
+   ra:"♇ Pluto in ♑ Capricornus opposing RĀI Cancer placements (Mercury H11, Sun H11 area) · roots and identity in transformation",
+   tt:"Lover released Aug 2019. Masters dispute with Scooter Braun erupts. The legal battle for her own catalog begins.",
+   ta:"♄ Saturn in Capricornus squaring T.S. Ophiuchus Sun · power structures in direct conflict with core identity"},
+
+  {y:2020,rs:75,ts:87,res:80,theme:"2020 · Folklore · Maximum Convergence",
+   rt:"Saturn-Pluto conjunction in Capricorn (Jan 2020) — historic pressure on Cancer/Capricorn axis, directly opposing RĀI's natal chart cluster. Simultaneous: Jupiter transits T.S.'s natal Venus (Dec 26, orb 0.47°) — her Venus in Capricornus blessed exactly as she releases Folklore.",
+   ra:"♄/♇ conjunction in ♑ Capricornus · Jan 12 2020 · opposing RĀI natal placements · Saturn-Pluto conjunctions are once-in-generation events",
+   tt:"Jul 24 2020: Folklore released as surprise album. Critical masterpiece. Evermore 5 months later. Both recorded in isolation. AOTY Grammy for the third time.",
+   ta:"♃ Jupiter conjuncts T.S. natal Venus Dec 26 2020 (orb 0.47°) — her Venus in Capricornus blessed exactly as the folklore era peaks"},
+
+  {y:2021,rs:78,ts:87,res:74,theme:"2021 · Jupiter-Saturn Conjunction · New Cycles",
+   rt:"The Jupiter-Saturn great conjunction of Dec 2020 in Aquarius begins activating RĀI's natal Jupiter (350.4° Aquarius) throughout 2021. A full 12-year cycle restarting.",
+   ra:"♃/♄ great conjunction Dec 2020 in ♒ Aquarius · activating RĀI natal Jupiter 350.4° through 2021 · new 12-year chapter",
+   tt:"Fearless TV released Apr 2021. Red TV Nov 2021. The re-recording campaign as reclamation of what was taken.",
+   ta:"♃ Jupiter in Aquarius area activating cross-chart connections between RĀI's Jupiter and the broader synastry"},
+
+  {y:2022,rs:80,ts:88,res:76,theme:"2022 · Midnights · Uranus Breaks Records",
+   rt:"Uranus transiting Taurus — forming a trine to RĀI's Virgo ASC (197.9°). Breakthrough energy. The authentic identity emerges from unexpected direction. Age 36.",
+   ra:"♅ Uranus in ♉ Taurus — trine RĀI ASC Virgo · sudden authentic breakthrough · the unexpected arrival",
+   tt:"Midnights released Oct 21 2022. Breaks every streaming record simultaneously. All top-10 Billboard Hot 100. Anti-Hero. Lavender Haze.",
+   ta:"♅ Uranus in Taurus trine T.S. natal Mercury in Sagittarius — revolutionary communication lands at scale"},
+
+  {y:2023,rs:85,ts:98,res:86,theme:"2023 · Eras Tour · Peak Convergence",
+   rt:"Jupiter in Aries — conjuncting T.S.'s Gemini-area placements and activating RĀI's Pisces Moon/North Node axis. Both charts lighting up simultaneously. The convergence index is at its highest point in the entire record.",
+   ra:"♃ Jupiter in ♈ Aries — building toward trine with RĀI Moon/N.Node cluster · emotional expansion, destiny activation",
+   tt:"Eras Tour begins Mar 2023. $2.077B gross. Time Person of the Year. Kelce relationship begins publicly Sep 2023.",
+   ta:"♃ Jupiter in Aries trine T.S. natal Sagittarius stellium — maximum expansion · everything activates at once"},
+
+  {y:2024,rs:82,ts:95,res:81,theme:"2024 · TTPD · Pluto Enters Aquarius",
+   rt:"Pluto enters Aquarius (Jan 2024) — conjuncting RĀI's natal Jupiter (350.4° Aquarius). Pluto-Jupiter by transit is transformation of beliefs, philosophy, and expansion itself. A complete rewiring of what growth means. Age 38.",
+   ra:"♇ Pluto entering ♒ Aquarius · conjuncting RĀI natal Jupiter 350.4° · beliefs and expansion completely transformed · rare transit",
+   tt:"Tortured Poets Dept released Apr 19 2024. Anthemic Prose poetry-pop. 4th AOTY Grammy Feb 2025. Eras Tour closes Dec 8 2024.",
+   ta:"♇ Pluto entering Aquarius — generational shift · her art at maximum cultural power"},
+
+  {y:2025,rs:84,ts:93,res:83,theme:"2025 · Life of a Showgirl · Engagement",
+   rt:"Saturn enters Aries (May 2025) — forming a square to RĀI's Virgo Ascendant. Identity under direct pressure. Who are you now? What do you stand for? A reckoning with the face shown to the world.",
+   ra:"♄ Saturn entering ♈ Aries · squaring RĀI ASC Virgo 197.9° · identity structure tested · the mirror held up",
+   tt:"Life of a Showgirl released Oct 2025. Engaged to Travis Kelce Aug 2025. Masters purchase finalized May 2025.",
+   ta:"♄ Saturn in Aries squaring T.S. natal Sagittarius stellium — commitment restructures everything"},
+
+  {y:2026.35,rs:86,ts:92,res:85,theme:"May 2026 · Now · The Record Continues",
+   rt:"Neptune crossing from Pisces into Aries — the great boundary. As Neptune moves, it will soon conjunct RĀI's natal Moon (Pisces 4.3°) in its final degrees of Pisces. The dissolution is completing. Something new is becoming. Age 39.",
+   ra:"♆ Neptune in final degrees ♓ Pisces · approaching RĀI natal Moon 4.3° · spiritual completion · new chapter forming as Aries threshold approaches",
+   tt:"Wedding planned June 2026. The Eras era closing. A new chapter for the most documented artist in history.",
+   ta:"♆ Neptune in Pisces completing opposition to T.S. Gemini Moon · the great dissolution resolves"},
+];
+
+// ═══ TIMELINE RENDER ═══
+const RC='#5ec8ff', TC='#ff9dc5', CC='#bca8ff';
+const tlC=document.getElementById('tlCanvas');
+const tlX=tlC.getContext('2d');
+let view='all', hovIdx=-1;
+
+function setView(m,btn){view=m;document.querySelectorAll('.btn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');draw();}
+
+function resizeTL(){
+  const dpr=devicePixelRatio||1, rect=tlC.parentElement.getBoundingClientRect();
+  tlC.width=rect.width*dpr; tlC.height=340*dpr;
+  tlX.scale(dpr,dpr); tlC.style.width=rect.width+'px'; tlC.style.height='340px'; draw();
+}
+
+function draw(){
+  const W=tlC.offsetWidth, H=tlC.offsetHeight||340;
+  tlX.clearRect(0,0,W,H);
+  const PL=50,PR=20,PT=28,PB=44, gW=W-PL-PR, gH=H-PT-PB;
+  const minY=1985.9, maxY=2026.6;
+  function px(y){return PL+(y-minY)/(maxY-minY)*gW;}
+  function py(v){return PT+gH*(1-v/100);}
+
+  // Grid
+  tlX.strokeStyle='rgba(255,255,255,.025)'; tlX.lineWidth=1;
+  [0,25,50,75,100].forEach(v=>{
+    const y=py(v); tlX.beginPath();tlX.moveTo(PL,y);tlX.lineTo(W-PR,y);tlX.stroke();
+    tlX.fillStyle='rgba(100,115,140,.4)';tlX.font='8px JetBrains Mono';tlX.fillText(v,4,y+3);
+  });
+
+  // Year ticks
+  tlX.fillStyle='rgba(90,100,120,.5)'; tlX.font='8px JetBrains Mono';
+  [1986,1989,1995,2000,2005,2008,2010,2015,2020,2023,2026].forEach(yr=>{
+    const x=px(yr); tlX.fillText(yr,x-12,H-10);
+    tlX.strokeStyle='rgba(255,255,255,.04)';tlX.beginPath();tlX.moveTo(x,PT);tlX.lineTo(x,H-PB);tlX.stroke();
+  });
+
+  // Venus-Jupiter 1986 marker
+  const vjX=px(1986.13);
+  tlX.strokeStyle='rgba(200,162,64,.3)'; tlX.lineWidth=1; tlX.setLineDash([3,4]);
+  tlX.beginPath();tlX.moveTo(vjX,PT);tlX.lineTo(vjX,H-PB);tlX.stroke();
+  tlX.setLineDash([]);
+  tlX.fillStyle='rgba(200,162,64,.6)'; tlX.font='7px JetBrains Mono';
+  tlX.fillText('♀♃',vjX-6,PT-8);
+
+  // Convergence verticals
+  E.forEach(e=>{
+    if(e.res>72){
+      const x=px(e.y);
+      tlX.strokeStyle=`rgba(188,168,255,${(e.res-70)/100})`;
+      tlX.lineWidth=1; tlX.setLineDash([2,3]);
+      tlX.beginPath();tlX.moveTo(x,PT);tlX.lineTo(x,H-PB);tlX.stroke();
+      tlX.setLineDash([]);
+    }
+  });
+
+  // NOW line
+  const nowX=px(2026.35);
+  tlX.strokeStyle='rgba(255,255,255,.08)'; tlX.lineWidth=1;
+  tlX.beginPath();tlX.moveTo(nowX,PT);tlX.lineTo(nowX,H-PB);tlX.stroke();
+
+  // Fill areas
+  function drawFill(key,color){
+    tlX.beginPath(); tlX.moveTo(px(E[0].y),py(0));
+    E.forEach(e=>tlX.lineTo(px(e.y),py(e[key])));
+    tlX.lineTo(px(E[E.length-1].y),py(0)); tlX.closePath();
+    const g=tlX.createLinearGradient(0,PT,0,H);
+    const rgb=color==='#5ec8ff'?'94,200,255':'255,157,197';
+    g.addColorStop(0,`rgba(${rgb},.10)`); g.addColorStop(1,`rgba(${rgb},.01)`);
+    tlX.fillStyle=g; tlX.fill();
+  }
+  if(view==='all'||view==='rai') drawFill('rs',RC);
+  if(view==='all'||view==='ts') drawFill('ts',TC);
+
+  // Lines
+  function drawLine(key,color,show){
+    if(!show)return;
+    tlX.beginPath();
+    E.forEach((e,i)=>{const x=px(e.y),y=py(e[key]);i===0?tlX.moveTo(x,y):tlX.lineTo(x,y);});
+    tlX.strokeStyle=color; tlX.lineWidth=2;
+    tlX.shadowBlur=10; tlX.shadowColor=color;
+    tlX.stroke(); tlX.shadowBlur=0;
+  }
+  drawLine('rs',RC,view==='all'||view==='rai');
+  drawLine('ts',TC,view==='all'||view==='ts');
+
+  // Resonance dashed line
+  if(view==='all'||view==='res'){
+    tlX.beginPath();
+    E.forEach((e,i)=>{const x=px(e.y),y=py(e.res);i===0?tlX.moveTo(x,y):tlX.lineTo(x,y);});
+    tlX.strokeStyle=CC; tlX.lineWidth=1.5; tlX.setLineDash([4,5]);
+    tlX.shadowBlur=8; tlX.shadowColor=CC;
+    tlX.stroke(); tlX.setLineDash([]); tlX.shadowBlur=0;
+  }
+
+  // Markers
+  E.forEach((e,i)=>{
+    const isH=i===hovIdx, r=isH?6:3.5, x=px(e.y);
+    if(view==='all'||view==='rai'){
+      tlX.beginPath();tlX.arc(x,py(e.rs),r,0,Math.PI*2);
+      tlX.fillStyle=isH?'#fff':RC; tlX.shadowBlur=isH?16:6; tlX.shadowColor=RC; tlX.fill(); tlX.shadowBlur=0;
+    }
+    if((view==='all'||view==='ts')&&e.ts>0){
+      tlX.beginPath();tlX.arc(x,py(e.ts),r,0,Math.PI*2);
+      tlX.fillStyle=isH?'#fff':TC; tlX.shadowBlur=isH?16:6; tlX.shadowColor=TC; tlX.fill(); tlX.shadowBlur=0;
+    }
+  });
+
+  // Labels for key moments
+  tlX.font='7px JetBrains Mono'; tlX.fillStyle='rgba(180,200,220,.35)';
+  [{y:1986.64,l:'RĀI'},{y:1989.95,l:'T.S.'},{y:2008,l:'Fearless'},{y:2015,l:'Return'},{y:2020,l:'Folklore'},{y:2023,l:'Eras'}].forEach(p=>{
+    tlX.fillText(p.l,px(p.y)-10,PT-6);
+  });
+}
+
+// Tooltip
+const tip=document.getElementById('tip');
+function nearestEvent(mx){
+  const W=tlC.offsetWidth, PL=50,PR=20, gW=W-PL-PR, minY=1985.9, maxY=2026.6;
+  const yFrac=(mx-PL)/gW*(maxY-minY)+minY;
+  let ci=-1, cd=999;
+  E.forEach((e,i)=>{const d=Math.abs(e.y-yFrac);if(d<cd){cd=d;ci=i;}});
+  return cd<.8?ci:-1;
+}
+tlC.addEventListener('mousemove',ev=>{
+  const r=tlC.getBoundingClientRect(), mx=ev.clientX-r.left;
+  const i=nearestEvent(mx);
+  hovIdx=i; draw();
+  if(i>=0){
+    const e=E[i];
+    document.getElementById('tYr').textContent=Math.floor(e.y);
+    document.getElementById('tWho').textContent=e.theme;
+    document.getElementById('tBody').textContent=e.rt.substring(0,90)+'…';
+    document.getElementById('tAstro').textContent=e.ra;
+    document.getElementById('rFill').style.width=e.res+'%';
+    document.getElementById('rVal').textContent=e.res+'%';
+    tip.style.left=(ev.clientX+16)+'px';
+    tip.style.top=(ev.clientY-90)+'px';
+    tip.classList.add('show');
+  } else { tip.classList.remove('show'); }
+});
+tlC.addEventListener('mouseleave',()=>{tip.classList.remove('show');hovIdx=-1;draw();});
+tlC.addEventListener('click',ev=>{
+  const r=tlC.getBoundingClientRect(), mx=ev.clientX-r.left, i=nearestEvent(mx);
+  if(i<0)return;
+  const e=E[i];
+  document.getElementById('dYr').textContent=Math.floor(e.y);
+  document.getElementById('dTheme').textContent=e.theme;
+  document.getElementById('dRt').textContent=e.rt;
+  document.getElementById('dRa').textContent=e.ra;
+  document.getElementById('dTt').textContent=e.tt;
+  document.getElementById('dTa').textContent=e.ta;
+  const db=document.getElementById('dbox'); db.classList.add('show');
+  db.scrollIntoView({behavior:'smooth',block:'nearest'});
+});
+
+addEventListener('resize',resizeTL);
+resizeTL();
+
+// ═══ MAGNIFYING GLASS ═══
+const MAG_R = 90;        // radius of the lens circle
+const MAG_ZOOM = 2.8;    // zoom factor
+const MAG_BORDER = 2;    // border thickness
+
+// Off-screen canvas — we draw the full timeline here at higher res for zoom sampling
+const offC = document.createElement('canvas');
+const offX = offC.getContext('2d');
+
+// Lens overlay element
+const lens = document.createElement('div');
+lens.id = 'mag-lens';
+Object.assign(lens.style, {
+  position: 'fixed',
+  width: (MAG_R*2)+'px',
+  height: (MAG_R*2)+'px',
+  borderRadius: '50%',
+  pointerEvents: 'none',
+  zIndex: '8888',
+  display: 'none',
+  boxShadow: '0 0 0 '+MAG_BORDER+'px rgba(94,200,255,.5), 0 0 30px rgba(94,200,255,.15), inset 0 0 0 1px rgba(255,255,255,.06)',
+  overflow: 'hidden',
+  backdropFilter: 'none',
+});
+
+const lensCanvas = document.createElement('canvas');
+lensCanvas.width = MAG_R*2;
+lensCanvas.height = MAG_R*2;
+Object.assign(lensCanvas.style, {width:'100%',height:'100%'});
+lens.appendChild(lensCanvas);
+document.body.appendChild(lens);
+
+// Crosshair lines inside lens
+const crossH = document.createElement('div');
+const crossV = document.createElement('div');
+[crossH, crossV].forEach((el,i)=>{
+  Object.assign(el.style, {
+    position:'absolute', background:'rgba(94,200,255,.25)',
+    pointerEvents:'none',
+  });
+  if(i===0){ Object.assign(el.style,{top:'50%',left:0,width:'100%',height:'1px',marginTop:'-0.5px'}); }
+  else      { Object.assign(el.style,{left:'50%',top:0,height:'100%',width:'1px',marginLeft:'-0.5px'}); }
+  lens.appendChild(el);
+});
+
+// Label inside lens
+const lensLabel = document.createElement('div');
+Object.assign(lensLabel.style,{
+  position:'absolute',bottom:'10px',left:0,right:0,
+  textAlign:'center',
+  fontFamily:"'JetBrains Mono',monospace",
+  fontSize:'8px',color:'rgba(94,200,255,.7)',
+  letterSpacing:'2px',pointerEvents:'none',
+  textShadow:'0 0 6px rgba(0,0,0,.8)',
+});
+lens.appendChild(lensLabel);
+
+const lensX = lensCanvas.getContext('2d');
+let isMagActive = false;
+
+function renderLens(clientX, clientY) {
+  const rect = tlC.getBoundingClientRect();
+  const dpr = devicePixelRatio || 1;
+
+  // Redraw full timeline into offscreen canvas at same dpr
+  offC.width = tlC.width;
+  offC.height = tlC.height;
+  offX.save();
+  offX.scale(1,1);
+
+  // Copy current tlCanvas pixels into offscreen
+  offX.drawImage(tlC, 0, 0);
+  offX.restore();
+
+  // Mouse position in canvas CSS coords
+  const mx = clientX - rect.left;
+  const my = clientY - rect.top;
+
+  // Source region to sample (in canvas CSS coords, centred on mouse)
+  const srcW = (MAG_R * 2) / MAG_ZOOM;
+  const srcH = (MAG_R * 2) / MAG_ZOOM;
+  const srcX = mx - srcW / 2;
+  const srcY = my - srcH / 2;
+
+  // Draw sampled region scaled up into lens canvas
+  // Use the actual tlC (already rendered) as source
+  lensX.clearRect(0, 0, MAG_R*2, MAG_R*2);
+
+  // Dark background
+  lensX.fillStyle = '#0c0c1c';
+  lensX.fillRect(0, 0, MAG_R*2, MAG_R*2);
+
+  // Draw zoomed portion of the timeline canvas
+  lensX.drawImage(
+    tlC,
+    srcX * dpr, srcY * dpr,          // source x,y (in physical pixels)
+    srcW * dpr, srcH * dpr,          // source w,h (in physical pixels)
+    0, 0,                             // dest x,y
+    MAG_R*2, MAG_R*2                 // dest w,h
+  );
+
+  // Clip to circle
+  lensX.globalCompositeOperation = 'destination-in';
+  lensX.beginPath();
+  lensX.arc(MAG_R, MAG_R, MAG_R, 0, Math.PI*2);
+  lensX.fillStyle = '#fff';
+  lensX.fill();
+  lensX.globalCompositeOperation = 'source-over';
+
+  // Year label
+  const PL=50, PR=20, minY=1985.9, maxY=2026.6;
+  const gW = tlC.offsetWidth - PL - PR;
+  const yr = ((mx - PL) / gW * (maxY - minY) + minY);
+  lensLabel.textContent = yr > 1985 && yr < 2027 ? Math.round(yr*10)/10 : '';
+
+  // Position lens centred on cursor
+  lens.style.left = (clientX - MAG_R) + 'px';
+  lens.style.top  = (clientY - MAG_R) + 'px';
+}
+
+tlC.addEventListener('mouseenter', ()=>{
+  lens.style.display = 'block';
+  tlC.style.cursor = 'none';
+  isMagActive = true;
+});
+
+tlC.addEventListener('mouseleave', ()=>{
+  lens.style.display = 'none';
+  tlC.style.cursor = 'crosshair';
+  isMagActive = false;
+});
+
+// Hook into existing mousemove — runs after the existing handler
+tlC.addEventListener('mousemove', ev=>{
+  if(isMagActive) renderLens(ev.clientX, ev.clientY);
+});
+
+</body>
+</html>

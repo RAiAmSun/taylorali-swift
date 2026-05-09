@@ -1,0 +1,375 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+.wrap { padding: 1rem 0; }
+.title { font-size: 16px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 2px; }
+.sub { font-size: 11px; color: var(--color-text-tertiary); margin-bottom: 1rem; }
+
+.chart-wrap {
+  background: var(--color-background-secondary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+}
+.chart-head {
+  padding: 10px 14px;
+  border-bottom: 0.5px solid var(--color-border-tertiary);
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
+}
+.chart-head-title { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--color-text-tertiary); }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; }
+.leg-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--color-text-secondary); }
+.leg-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+canvas#tl { display: block; width: 100%; cursor: crosshair; }
+
+.tip-bar {
+  padding: 8px 14px;
+  border-top: 0.5px solid var(--color-border-tertiary);
+  min-height: 36px;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+.tip-year { font-size: 14px; font-weight: 500; color: var(--color-text-primary); min-width: 40px; }
+.tip-theme { color: #b8a0ff; font-weight: 500; }
+.tip-res { margin-left: auto; font-size: 11px; color: var(--color-text-tertiary); }
+
+.res-bar-wrap { display: flex; align-items: center; gap: 8px; padding: 6px 14px; border-top: 0.5px solid var(--color-border-tertiary); }
+.res-label { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--color-text-tertiary); white-space: nowrap; }
+.res-track { flex: 1; height: 3px; background: var(--color-border-tertiary); border-radius: 2px; overflow: hidden; }
+.res-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, #6ecfff, #b8a0ff, #ffafd0); transition: width 0.3s ease; }
+.res-val { font-size: 11px; color: #b8a0ff; min-width: 32px; text-align: right; font-weight: 500; }
+
+.detail-box {
+  background: var(--color-background-primary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-lg);
+  padding: 1rem 1.25rem;
+  margin-top: 10px;
+  display: none;
+}
+.detail-box.show { display: block; }
+.detail-year { font-size: 28px; font-weight: 500; color: #b8a0ff; line-height: 1; }
+.detail-theme { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 12px; }
+.detail-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media(max-width:480px){ .detail-cols { grid-template-columns: 1fr; } }
+.detail-col h4 { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; }
+.rai-h { color: #6ecfff; }
+.ts-h { color: #ffafd0; }
+.detail-col p { font-size: 12px; color: var(--color-text-secondary); line-height: 1.65; font-style: italic; }
+.detail-astro { font-size: 11px; color: #b8a0ff; background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 6px 10px; margin-top: 6px; line-height: 1.6; }
+.close-btn { font-size: 10px; padding: 3px 10px; background: transparent; border: 0.5px solid var(--color-border-secondary); color: var(--color-text-tertiary); border-radius: 20px; cursor: pointer; float: right; }
+.close-btn:hover { border-color: #ff7070; color: #ff7070; }
+
+.collision-list { margin-top: 1rem; }
+.collision-item {
+  background: var(--color-background-primary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-left: 3px solid #b8a0ff;
+  border-radius: var(--border-radius-md);
+  padding: 0.6rem 0.9rem;
+  margin-bottom: 6px;
+  display: flex; gap: 12px; align-items: flex-start;
+}
+.col-year { font-size: 15px; font-weight: 500; color: #b8a0ff; min-width: 42px; }
+.col-body { flex: 1; }
+.col-theme { font-size: 12px; font-weight: 500; color: var(--color-text-primary); }
+.col-desc { font-size: 11px; color: var(--color-text-secondary); line-height: 1.5; margin-top: 2px; }
+.col-res { font-size: 10px; color: var(--color-text-tertiary); margin-top: 3px; }
+.now-badge {
+  font-size: 9px; padding: 2px 7px; border-radius: 10px;
+  background: rgba(255,176,64,.12); color: #ffb040;
+  border: 0.5px solid rgba(255,176,64,.3);
+  text-transform: uppercase; letter-spacing: 1px; margin-left: 6px;
+}
+</style>
+
+<div class="wrap">
+  <div class="title">Resonance Timeline — 1986 to 2100</div>
+  <div class="sub">Hover or tap any point to explore · Click to open full detail · Convergence windows marked in violet</div>
+
+  <div class="chart-wrap">
+    <div class="chart-head">
+      <div class="chart-head-title">Soul resonance index</div>
+      <div class="legend">
+        <div class="leg-item"><div class="leg-dot" style="background:#6ecfff"></div>RĀI</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#ffafd0"></div>T.S.</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#b8a0ff"></div>Convergence</div>
+      </div>
+    </div>
+    <canvas id="tl" height="280"></canvas>
+    <div class="tip-bar" id="tipBar">
+      <span style="color:var(--color-text-tertiary);font-size:11px">Hover over any point to see details — click to expand</span>
+    </div>
+    <div class="res-bar-wrap">
+      <div class="res-label">Resonance</div>
+      <div class="res-track"><div class="res-fill" id="resFill" style="width:0%"></div></div>
+      <div class="res-val" id="resVal">—</div>
+    </div>
+  </div>
+
+  <div class="detail-box" id="dbox">
+    <button class="close-btn" onclick="closeDetail()">✕ close</button>
+    <div class="detail-year" id="dYear">—</div>
+    <div class="detail-theme" id="dTheme">—</div>
+    <div class="detail-cols">
+      <div class="detail-col">
+        <h4 class="rai-h">RĀI · celestial weather</h4>
+        <p id="dRai">—</p>
+        <div class="detail-astro" id="dRaiAstro">—</div>
+      </div>
+      <div class="detail-col">
+        <h4 class="ts-h">T.S. · life events</h4>
+        <p id="dTs">—</p>
+        <div class="detail-astro" id="dTsAstro">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="font-size:10px;letter-spacing:4px;text-transform:uppercase;color:var(--color-text-tertiary);margin:1.5rem 0 0.75rem;padding-bottom:6px;border-bottom:0.5px solid var(--color-border-tertiary)">Key convergence windows</div>
+  <div class="collision-list" id="collisionList"></div>
+</div>
+
+<script>
+const RAI = '#6ecfff';
+const TS  = '#ffafd0';
+const CON = '#b8a0ff';
+
+const events = [
+  {y:1986, rs:50, ts:0,  res:20, theme:"RĀI arrives", rt:"Birth. Leo Sun 9am NZST Palmerston North. Moon Pisces. Virgo rising. Chart set.", ra:"☉ Leo 10.5° · ☽ Pisces 4.3° · ASC Virgo · ♅ Uranus Ophiuchus · ♄ Saturn Scorpius", tt:"Taylor Swift born three years later — chart awaits her.", ta:"—"},
+  {y:1989, rs:55, ts:50, res:35, theme:"T.S. arrives · Ophiuchus rising", rt:"Jupiter Aquarius transit — expansion, idealism, early formation.", ra:"♃ Jupiter transiting Aquarius — conjuncting RĀI natal Jupiter.", tt:"Dec 13 1989: Taylor Swift born. Sun Ophiuchus. Sagittarius stellium: Mercury, Saturn, Uranus, Neptune.", ta:"☉ Ophiuchus 13.5° · ☽ Gemini 2.5° · ♐ Sagittarius stellium"},
+  {y:1999, rs:68, ts:62, res:55, theme:"First convergence wave", rt:"Saturn Taurus — grounding dreams. Age 13, formative.", ra:"♄ Saturn Taurus · trine RĀI Virgo ASC · Discipline meets purpose", tt:"Taylor age 9–10. Performing in local theater. First guitar lessons.", ta:"♄ Saturn Taurus · forming aspects across both charts simultaneously"},
+  {y:2002, rs:70, ts:65, res:52, theme:"Creative awakening", rt:"Pluto transiting Sagittarius — conjuncting RĀI natal Mars and Neptune.", ra:"♇ Pluto conjunct RĀI Mars (282°) — identity, drive, power activated", tt:"Taylor age 12 — moves to Nashville with family.", ta:"♇ Pluto Sagittarius activating her natal Sagittarius stellium"},
+  {y:2006, rs:75, ts:78, res:65, theme:"First ascent", rt:"Jupiter Scorpius — deep expansion.", ra:"♃ Jupiter transiting Scorpius — conjuncting RĀI natal Saturn.", tt:"Taylor releases debut album Oct 2006. Tim McGraw. Age 16.", ta:"♃ Jupiter Scorpius expanding career · ♄ Saturn entering Virgo"},
+  {y:2008, rs:80, ts:85, res:72, theme:"Fearless era · parallel peak", rt:"Saturn Virgo — conjuncting RĀI Ascendant. Identity crystallisation.", ra:"♄ Saturn conjunct RĀI ASC (Virgo 24°) — threshold moment.", tt:"Fearless Nov 2008. Love Story, You Belong With Me. AOTY Grammy.", ta:"♄ Saturn conjunct T.S. MC (Virgo 38°) — career destiny activated"},
+  {y:2012, rs:76, ts:90, res:68, theme:"Red era · emotional storm", rt:"Neptune enters Pisces — RĀI Moon activated.", ra:"♆ Neptune conjunct RĀI Moon (Pisces 4°) — spiritual dissolution", tt:"Red Oct 2012. We Are Never Ever Getting Back Together. First #1 pop hit.", ta:"♆ Neptune Pisces opposing Gemini Moon — emotional depths"},
+  {y:2014, rs:72, ts:95, res:65, theme:"1989 era · world stage", rt:"Saturn return — RĀI natal Saturn. 28-year reckoning.", ra:"♄ Saturn return conjunct RĀI natal Saturn (Scorpius 2°)", tt:"1989 Oct 2014. Complete pop reinvention. AOTY Grammy. Global phenomenon.", ta:"♄ Saturn Sagittarius approaching stellium — pressure before explosion"},
+  {y:2020, rs:75, ts:85, res:70, theme:"Folklore · convergence peak", rt:"Saturn/Pluto conjunction Capricorn — historic pressure.", ra:"♄/♇ conjunction Capricornus opposing RĀI Leo Sun — identity pressure", tt:"Folklore Jul 2020. Surprise album. Indie folk. AOTY Grammy.", ta:"♄/♇ squaring natal Ophiuchus Sun — forced transformation breeds genius"},
+  {y:2021, rs:78, ts:87, res:73, theme:"Re-recording · reclamation", rt:"Jupiter conjunct Saturn Aquarius — RĀI Jupiter return.", ra:"♃/♄ conjunction Aquarius exact with RĀI natal Jupiter (22°). Mega cycle restart.", tt:"Fearless TV & Red TV. Re-recording campaign.", ta:"♃ Jupiter conjunct RĀI natal Jupiter — her expansion activates his chart"},
+  {y:2023, rs:85, ts:98, res:82, theme:"Eras Tour · maximum resonance", rt:"Jupiter Aries — building trine to RĀI Moon/Neptune cluster.", ra:"♃ Jupiter Aries trine RĀI Moon/Neptune — emotional expansion, public resonance", tt:"Eras Tour begins Mar 2023. $2B gross. Time Person of Year. Kelce begins.", ta:"♃ Jupiter Aries trine natal Sagittarius stellium — maximum expansion"},
+  {y:2025, rs:84, ts:94, res:83, theme:"Life of a Showgirl · engagement", rt:"Saturn entering Aries — squaring RĀI ASC. Identity tested.", ra:"♄ Saturn Aries — squaring RĀI Virgo ASC. Who are you becoming?", tt:"Life of a Showgirl Oct 2025. Engaged to Travis Kelce Aug 2025. Masters purchased.", ta:"♄ Saturn Aries squaring natal Sagittarius stellium — major restructuring"},
+  {y:2026, rs:86, ts:92, res:85, theme:"Now · Neptune enters Aries", rt:"Neptune entering Aries — spiritual breakthrough. 165-year cycle begins.", ra:"♆ Neptune entering Aries — will conjunct RĀI Moon as it crosses. Spiritual rebirth.", tt:"May 2026. Wedding planned June 2026. Story continues.", ta:"♆ Neptune crossing Pisces to Aries — great boundary dissolution"},
+  {y:2028, rs:88, ts:85, res:88, theme:"Collision 1 — Uranus opposition begins", rt:"Age 42: Uranus Opposition begins. Mid-life awakening.", ra:"♅ Uranus Opposition (~2028–2031) — questioning everything. Awakening.", tt:"Age 38: T.S. approaching Uranus Opposition (2029–2032). Parallel awakening.", ta:"♅ Uranus at opposition — simultaneous life transformation both charts"},
+  {y:2030, rs:90, ts:88, res:92, theme:"Uranus opposition peak · soul realignment", rt:"RĀI Uranus Opposition exact. Most disruptive, liberating year.", ra:"♅ Uranus conjunct RĀI ASC opposite natal — radical authenticity.", tt:"Age 40: T.S. in midst of Uranus Opposition. Simultaneous breakdown/breakthrough.", ta:"♅ Uranus Opposition activating entire Sagittarius stellium — total reinvention"},
+  {y:2032, rs:85, ts:90, res:90, theme:"Uranus opposition resolved · both awakened", rt:"Both have undergone complete identity restructuring.", ra:"♅ Uranus Opposition exact end — new identity solidified.", tt:"Age 42: T.S. Uranus Opposition peak. Transformation complete.", ta:"♅ Uranus Opposition exact for T.S. — awakened to true power"},
+  {y:2044, rs:82, ts:86, res:84, theme:"Collision 2 — second Saturn return", rt:"Age 58: RĀI Second Saturn Return. Major life reckoning.", ra:"♄ Saturn return #2 exact — RĀI faces ultimate karmic reckoning.", tt:"Age 54: T.S. approaching Saturn wisdom phase.", ta:"♄ Saturn building toward 2047–2048 return — T.S. preparing"},
+  {y:2048, rs:81, ts:85, res:87, theme:"Collision 2 complete · parallel Saturn wisdom", rt:"Age 62: RĀI settled in post-Saturn wisdom.", ra:"♄ Saturn return concluded — deepest wisdom. Teaching begins.", tt:"Age 58: T.S. Second Saturn Return EXACT. PARALLEL RECKONING.", ta:"♄ Saturn return #2 exact — both in ultimate karmic completion simultaneously"},
+  {y:2055, rs:78, ts:79, res:83, theme:"Nodal return cycles", rt:"Age 69: RĀI North Node return (Pisces 22°).", ra:"☊ North Node return #4 — spiritual growth, purpose clarification.", tt:"Age 65: T.S. post-nodal cycle. Both reflecting on soul purpose.", ta:"☊ North Node cycle completion — T.S. reflecting on soul growth"},
+  {y:2070, rs:74, ts:75, res:79, theme:"Neptune opposition · spiritual integration", rt:"Age 84: RĀI Neptune opposition. Spiritual culmination.", ra:"♆ Neptune opposition — spiritual breakthrough, life review.", tt:"Age 80: T.S. approaching Neptune opposition. Elder mysticism.", ta:"♆ Neptune opposition building — spiritual life review"},
+  {y:2090, rs:65, ts:67, res:70, theme:"Final grand cycle · charts converge", rt:"Age 104: RĀI legacy lived. All cycles complete.", ra:"All major cycles completed. Soul's work done.", tt:"Age 100: T.S. reaches century mark.", ta:"All cycles complete. The full astrological narrative complete."},
+  {y:2100, rs:60, ts:62, res:65, theme:"End of century · full arc", rt:"Age 114: RĀI — entire century witnessed.", ra:"Century complete. All transits, all returns, all cycles complete.", tt:"Age 110: T.S. born 1989, alive through 2100.", ta:"Century marker. Full story from 1986 to 2100 complete."},
+];
+
+const collisionYears = [1999, 2008, 2023, 2026, 2028, 2030, 2032, 2048];
+
+const canvas = document.getElementById('tl');
+const ctx = canvas.getContext('2d');
+let hovered = -1;
+
+function isDark() {
+  return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+
+function getColors() {
+  return {
+    grid: isDark() ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.05)',
+    axis: isDark() ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)',
+    text: isDark() ? 'rgba(180,180,200,0.6)' : 'rgba(60,60,80,0.6)',
+    conv: 'rgba(184,160,255,0.12)',
+  };
+}
+
+function resize() {
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.parentElement.getBoundingClientRect().width;
+  canvas.width = w * dpr;
+  canvas.height = 280 * dpr;
+  canvas.style.width = w + 'px';
+  canvas.style.height = '280px';
+  ctx.scale(dpr, dpr);
+  draw();
+}
+
+function draw() {
+  const W = canvas.offsetWidth, H = 280;
+  ctx.clearRect(0, 0, W, H);
+  const PL = 44, PR = 16, PT = 20, PB = 40;
+  const gW = W - PL - PR, gH = H - PT - PB;
+  const minY = 1986, maxY = 2100;
+  const C = getColors();
+
+  function px(y) { return PL + (y - minY) / (maxY - minY) * gW; }
+  function py(v) { return PT + gH - (v / 100) * gH; }
+
+  // grid
+  ctx.strokeStyle = C.grid; ctx.lineWidth = 1;
+  [0,25,50,75,100].forEach(v => {
+    ctx.beginPath(); ctx.moveTo(PL, py(v)); ctx.lineTo(PL + gW, py(v)); ctx.stroke();
+    ctx.fillStyle = C.text; ctx.font = '9px sans-serif'; ctx.textAlign = 'right';
+    ctx.fillText(v, PL - 5, py(v) + 3);
+  });
+
+  // year labels
+  ctx.fillStyle = C.text; ctx.font = '9px sans-serif'; ctx.textAlign = 'center';
+  [1990,2000,2010,2020,2030,2040,2050,2060,2070,2080,2090,2100].forEach(y => {
+    const x = px(y);
+    ctx.beginPath(); ctx.strokeStyle = C.axis; ctx.lineWidth = 0.5;
+    ctx.moveTo(x, PT); ctx.lineTo(x, PT + gH); ctx.stroke();
+    ctx.fillStyle = C.text; ctx.fillText(y, x, H - 8);
+  });
+
+  // convergence shading for collision windows
+  collisionYears.forEach(cy => {
+    const x = px(cy);
+    ctx.fillStyle = C.conv;
+    ctx.fillRect(x - 8, PT, 16, gH);
+  });
+
+  // high resonance vertical lines
+  events.forEach(e => {
+    if (e.res > 80) {
+      ctx.strokeStyle = `rgba(184,160,255,${(e.res - 80) / 100})`;
+      ctx.lineWidth = 1; ctx.setLineDash([2,3]);
+      ctx.beginPath(); ctx.moveTo(px(e.y), PT); ctx.lineTo(px(e.y), PT + gH);
+      ctx.stroke(); ctx.setLineDash([]);
+    }
+  });
+
+  // NOW line
+  const nowX = px(2026);
+  ctx.strokeStyle = 'rgba(255,176,64,0.6)'; ctx.lineWidth = 1.5; ctx.setLineDash([4,3]);
+  ctx.beginPath(); ctx.moveTo(nowX, PT); ctx.lineTo(nowX, PT + gH); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = 'rgba(255,176,64,0.8)'; ctx.font = '9px sans-serif'; ctx.textAlign = 'center';
+  ctx.fillText('NOW', nowX, PT - 6);
+
+  // lines
+  function drawLine(colorStr, scoreKey) {
+    ctx.beginPath(); ctx.strokeStyle = colorStr; ctx.lineWidth = 1.5;
+    events.forEach((e, i) => {
+      const x = px(e.y), y = py(e[scoreKey]);
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+  }
+  drawLine('rgba(110,207,255,0.5)', 'rs');
+  drawLine('rgba(255,175,208,0.5)', 'ts');
+  drawLine('rgba(184,160,255,0.8)', 'res');
+
+  // dots
+  events.forEach((e, i) => {
+    const isH = i === hovered;
+    const r = isH ? 5 : 3;
+
+    [[RAI,'rs'],[TS,'ts']].forEach(([col, key]) => {
+      if (e[key] === 0) return;
+      ctx.beginPath(); ctx.arc(px(e.y), py(e[key]), r, 0, Math.PI*2);
+      ctx.fillStyle = isH ? '#fff' : col;
+      ctx.shadowBlur = isH ? 10 : 4; ctx.shadowColor = col;
+      ctx.fill(); ctx.shadowBlur = 0;
+    });
+
+    // convergence dot
+    ctx.beginPath(); ctx.arc(px(e.y), py(e.res), isH ? 6 : 4, 0, Math.PI*2);
+    ctx.fillStyle = isH ? '#fff' : CON;
+    ctx.shadowBlur = isH ? 14 : 6; ctx.shadowColor = CON;
+    ctx.fill(); ctx.shadowBlur = 0;
+
+    // year label on hover
+    if (isH) {
+      ctx.fillStyle = '#b8a0ff'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText(e.y, px(e.y), PT - 6);
+    }
+  });
+}
+
+function findNearest(mx) {
+  const W = canvas.offsetWidth;
+  const PL = 44, PR = 16, gW = W - PL - PR;
+  const minY = 1986, maxY = 2100;
+  const yearFrac = (mx - PL) / gW * (maxY - minY) + minY;
+  let best = -1, bestD = 999;
+  events.forEach((e, i) => {
+    const d = Math.abs(e.y - yearFrac);
+    if (d < bestD) { bestD = d; best = i; }
+  });
+  return bestD < 2.5 ? best : -1;
+}
+
+canvas.addEventListener('mousemove', function(e) {
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const idx = findNearest(mx);
+  if (idx !== hovered) { hovered = idx; draw(); }
+  if (idx >= 0) updateTip(events[idx]);
+  else resetTip();
+});
+
+canvas.addEventListener('mouseleave', () => { hovered = -1; draw(); resetTip(); });
+
+canvas.addEventListener('click', function(e) {
+  const rect = canvas.getBoundingClientRect();
+  const idx = findNearest(e.clientX - rect.left);
+  if (idx >= 0) openDetail(events[idx]);
+});
+
+canvas.addEventListener('touchstart', function(e) {
+  const rect = canvas.getBoundingClientRect();
+  const touch = e.touches[0];
+  const idx = findNearest(touch.clientX - rect.left);
+  if (idx >= 0) { openDetail(events[idx]); e.preventDefault(); }
+}, {passive: false});
+
+function updateTip(ev) {
+  document.getElementById('tipBar').innerHTML =
+    `<span class="tip-year">${ev.y}</span><span class="tip-theme">${ev.theme}</span><span class="tip-res">Resonance: ${ev.res}%</span>`;
+  document.getElementById('resFill').style.width = ev.res + '%';
+  document.getElementById('resVal').textContent = ev.res + '%';
+}
+
+function resetTip() {
+  document.getElementById('tipBar').innerHTML = '<span style="color:var(--color-text-tertiary);font-size:11px">Hover over any point to see details — click to expand</span>';
+  document.getElementById('resFill').style.width = '0%';
+  document.getElementById('resVal').textContent = '—';
+}
+
+function openDetail(ev) {
+  document.getElementById('dYear').textContent = ev.y;
+  document.getElementById('dTheme').textContent = ev.theme;
+  document.getElementById('dRai').textContent = ev.rt;
+  document.getElementById('dRaiAstro').textContent = ev.ra;
+  document.getElementById('dTs').textContent = ev.tt;
+  document.getElementById('dTsAstro').textContent = ev.ta;
+  const box = document.getElementById('dbox');
+  box.classList.add('show');
+  box.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function closeDetail() {
+  document.getElementById('dbox').classList.remove('show');
+}
+
+// Build collision list
+const keyEvents = events.filter(e => e.res >= 70 || collisionYears.includes(e.y));
+const list = document.getElementById('collisionList');
+keyEvents.forEach(e => {
+  const isNow = e.y === 2026;
+  const div = document.createElement('div');
+  div.className = 'collision-item';
+  div.style.cursor = 'pointer';
+  div.innerHTML = `
+    <div class="col-year">${e.y}${isNow ? '<span class="now-badge">now</span>' : ''}</div>
+    <div class="col-body">
+      <div class="col-theme">${e.theme}</div>
+      <div class="col-desc">${e.rt.substring(0,100)}${e.rt.length > 100 ? '…' : ''}</div>
+      <div class="col-res">Resonance: ${e.res}%</div>
+    </div>`;
+  div.onclick = () => openDetail(e);
+  list.appendChild(div);
+});
+
+window.addEventListener('resize', resize);
+resize();
+</script>

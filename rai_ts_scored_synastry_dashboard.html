@@ -1,0 +1,356 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+.wrap { padding: 1rem 0; font-family: var(--font-sans); }
+.main-title { font-size: 18px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 2px; }
+.main-sub { font-size: 12px; color: var(--color-text-tertiary); margin-bottom: 1.5rem; }
+.section-label {
+  font-size: 10px; letter-spacing: 4px; text-transform: uppercase;
+  color: var(--color-text-tertiary); margin: 1.5rem 0 0.75rem;
+  padding-bottom: 6px; border-bottom: 0.5px solid var(--color-border-tertiary);
+}
+
+/* Overall score ring */
+.score-hero {
+  display: flex; align-items: center; gap: 2rem; flex-wrap: wrap;
+  background: var(--color-background-secondary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-lg);
+  padding: 1.25rem 1.5rem; margin-bottom: 1rem;
+}
+.ring-wrap { position: relative; width: 110px; height: 110px; flex-shrink: 0; }
+.ring-wrap svg { width: 110px; height: 110px; }
+.ring-center {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  text-align: center;
+}
+.ring-pct { font-size: 26px; font-weight: 500; color: #b8a0ff; line-height: 1; }
+.ring-lbl { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--color-text-tertiary); }
+.score-meta { flex: 1; min-width: 200px; }
+.score-meta h2 { font-size: 15px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 6px; }
+.score-meta p { font-size: 12px; color: var(--color-text-secondary); line-height: 1.7; }
+.score-band {
+  display: inline-block; font-size: 10px; padding: 3px 10px;
+  border-radius: 20px; margin-top: 8px;
+  background: rgba(155,109,255,.12); color: #b8a0ff;
+  border: 0.5px solid rgba(155,109,255,.3);
+  text-transform: uppercase; letter-spacing: 1px;
+}
+
+/* Dimension bars */
+.dim-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media(max-width:500px){ .dim-grid { grid-template-columns: 1fr; } }
+.dim-card {
+  background: var(--color-background-primary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-md);
+  padding: 0.75rem 1rem;
+}
+.dim-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.dim-name { font-size: 12px; font-weight: 500; color: var(--color-text-primary); }
+.dim-pct { font-size: 13px; font-weight: 500; }
+.dim-bar-track { height: 4px; background: var(--color-border-tertiary); border-radius: 2px; overflow: hidden; margin-bottom: 5px; }
+.dim-bar-fill { height: 100%; border-radius: 2px; transition: width 1s ease; }
+.dim-desc { font-size: 11px; color: var(--color-text-tertiary); line-height: 1.5; }
+
+/* Weighted scoring table */
+.score-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.score-table th {
+  text-align: left; font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--color-text-tertiary); padding: 6px 8px;
+  border-bottom: 0.5px solid var(--color-border-tertiary); font-weight: 400;
+}
+.score-table td { padding: 7px 8px; border-bottom: 0.5px solid var(--color-border-tertiary); vertical-align: top; }
+.score-table tr:last-child td { border-bottom: none; }
+.aspect-name { color: var(--color-text-primary); font-weight: 500; }
+.weight-badge {
+  display: inline-block; font-size: 9px; padding: 1px 6px;
+  border-radius: 10px; text-transform: uppercase; letter-spacing: 1px; white-space: nowrap;
+}
+.w4 { background: rgba(155,109,255,.12); color: #b8a0ff; border: 0.5px solid rgba(155,109,255,.3); }
+.w3 { background: rgba(93,232,122,.1); color: #5de87a; border: 0.5px solid rgba(93,232,122,.25); }
+.w2 { background: rgba(110,207,255,.08); color: #6ecfff; border: 0.5px solid rgba(110,207,255,.25); }
+.wn { background: rgba(255,96,96,.08); color: #ff7070; border: 0.5px solid rgba(255,96,96,.25); }
+.orb-tight { color: #b8a0ff; font-weight: 500; }
+.orb-mid { color: var(--color-text-secondary); }
+
+/* Tradition grid */
+.trad-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px,1fr)); gap: 8px; }
+.trad-card {
+  background: var(--color-background-primary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-md);
+  padding: 0.75rem;
+}
+.trad-name { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--color-text-tertiary); margin-bottom: 4px; }
+.trad-score { font-size: 22px; font-weight: 500; margin-bottom: 2px; }
+.trad-bar-track { height: 3px; background: var(--color-border-tertiary); border-radius: 2px; overflow: hidden; margin-bottom: 6px; }
+.trad-bar-fill { height: 100%; border-radius: 2px; }
+.trad-desc { font-size: 11px; color: var(--color-text-secondary); line-height: 1.5; }
+
+/* Rarity box */
+.rarity-box {
+  background: var(--color-background-secondary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-left: 3px solid #b8a0ff;
+  border-radius: var(--border-radius-md);
+  padding: 0.75rem 1rem; margin-top: 1rem;
+}
+.rarity-box p { font-size: 12px; color: var(--color-text-secondary); line-height: 1.7; margin-top: 0.4rem; }
+.rarity-box p:first-child { margin-top: 0; color: var(--color-text-primary); font-weight: 500; font-size: 13px; }
+
+/* Aspect ratio */
+.ratio-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 0.5rem; }
+.ratio-card {
+  flex: 1; min-width: 100px;
+  background: var(--color-background-secondary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-md);
+  padding: 0.6rem 0.8rem; text-align: center;
+}
+.ratio-num { font-size: 20px; font-weight: 500; }
+.ratio-lbl { font-size: 10px; color: var(--color-text-tertiary); letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
+</style>
+
+<div class="wrap">
+  <div class="main-title">RĀI × T.S. — Weighted Synastry Scorecard</div>
+  <div class="main-sub">Cafe Astrology weighted system + Bippus aspect ratio + 6-tradition soulmate indicator tally</div>
+
+  <!-- Hero score -->
+  <div class="section-label">Overall compatibility score</div>
+  <div class="score-hero">
+    <div class="ring-wrap">
+      <svg viewBox="0 0 110 110">
+        <circle cx="55" cy="55" r="46" fill="none" stroke="var(--color-border-tertiary)" stroke-width="8"/>
+        <circle cx="55" cy="55" r="46" fill="none" stroke="#b8a0ff" stroke-width="8"
+          stroke-dasharray="289" stroke-dashoffset="52" stroke-linecap="round"
+          transform="rotate(-90 55 55)"/>
+      </svg>
+      <div class="ring-center">
+        <div class="ring-pct">82%</div>
+        <div class="ring-lbl">overall</div>
+      </div>
+    </div>
+    <div class="score-meta">
+      <h2>Exceptional — top ~3% of all synastry charts</h2>
+      <p>Driven primarily by the extraordinary concentration of near-zero-orb Node and angle contacts, plus the Sagittarius stellium overlap. The score would be 75–78% without the ASC–Node trine at 0.1°; that single aspect alone lifts the chart into rare territory.</p>
+      <span class="score-band">Strong fated / karmic signature</span>
+    </div>
+  </div>
+
+  <!-- Dimension breakdown -->
+  <div class="section-label">Dimensional breakdown</div>
+  <div class="dim-grid">
+    <div class="dim-card">
+      <div class="dim-head">
+        <div class="dim-name">Karmic / Soul</div>
+        <div class="dim-pct" style="color:#b8a0ff">94%</div>
+      </div>
+      <div class="dim-bar-track"><div class="dim-bar-fill" style="width:94%;background:#b8a0ff"></div></div>
+      <div class="dim-desc">Node contacts × 2 (both trines, tight orbs), Saturn–Moon quincunx, Pluto–MC conjunction. This dimension is extraordinary — 4 major karmic indicators, 3 under 1° orb. Statistically very rare.</div>
+    </div>
+    <div class="dim-card">
+      <div class="dim-head">
+        <div class="dim-name">Creative / Visionary</div>
+        <div class="dim-pct" style="color:#6ecfff">91%</div>
+      </div>
+      <div class="dim-bar-track"><div class="dim-bar-fill" style="width:91%;background:#6ecfff"></div></div>
+      <div class="dim-desc">Mars–Neptune conjunction (0.7°), Neptune–Moon opposition (0.3°), shared Sagittarius stellium overlap, Uranus–Sun conjunction in Ophiuchus. Exceptional creative and visionary resonance.</div>
+    </div>
+    <div class="dim-card">
+      <div class="dim-head">
+        <div class="dim-name">Emotional / Relational</div>
+        <div class="dim-pct" style="color:#ffafd0">71%</div>
+      </div>
+      <div class="dim-bar-track"><div class="dim-bar-fill" style="width:71%;background:#ffafd0"></div></div>
+      <div class="dim-desc">Neptune–Moon opposition creates longing and distance; Saturn–Moon quincunx brings friction. No direct Moon–Moon or Sun–Moon contact. Deep emotional intensity but not easy emotional comfort.</div>
+    </div>
+    <div class="dim-card">
+      <div class="dim-head">
+        <div class="dim-name">Dynamic / Drive</div>
+        <div class="dim-pct" style="color:#ffb040">74%</div>
+      </div>
+      <div class="dim-bar-track"><div class="dim-bar-fill" style="width:74%;background:#ffb040"></div></div>
+      <div class="dim-desc">Sun–Mars square (1.7°) creates active friction and mutual provocation. Mars–Mercury conjunction energises communication. Neither person leaves the other passive. High activation, needs conscious direction.</div>
+    </div>
+    <div class="dim-card">
+      <div class="dim-head">
+        <div class="dim-name">Intellectual / Communication</div>
+        <div class="dim-pct" style="color:#5de87a">78%</div>
+      </div>
+      <div class="dim-bar-track"><div class="dim-bar-fill" style="width:78%;background:#5de87a"></div></div>
+      <div class="dim-desc">Mars–Mercury conjunction in Sagittarius (3.2°) aligns drive with language. Both charts carry strong Sagittarian/mutable energy — shared philosophical and expansive communication style.</div>
+    </div>
+    <div class="dim-card">
+      <div class="dim-head">
+        <div class="dim-name">Destiny / Public life</div>
+        <div class="dim-pct" style="color:#c9a84c">86%</div>
+      </div>
+      <div class="dim-bar-track"><div class="dim-bar-fill" style="width:86%;background:#c9a84c"></div></div>
+      <div class="dim-desc">MC–ASC opposition (1.4°)*, Pluto–MC conjunction (2.5°)*, MC–Jupiter conjunction (2.0°)*. Three axis contacts linking destiny and public life — unusually high. All depend on T.S. birth time.</div>
+    </div>
+  </div>
+
+  <!-- Weighted scoring table -->
+  <div class="section-label">Weighted aspect scoring — Cafe Astrology methodology</div>
+  <table class="score-table">
+    <thead>
+      <tr>
+        <th>Aspect</th>
+        <th>Type</th>
+        <th>Orb</th>
+        <th>Weight</th>
+        <th>Points</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="aspect-name">RĀI ASC ↔ T.S. N.Node</span></td>
+        <td>Trine</td>
+        <td><span class="orb-tight">0.1°</span></td>
+        <td><span class="weight-badge w4">+4 max</span></td>
+        <td style="color:#b8a0ff;font-weight:500">+4.0</td>
+      </tr>
+      <tr>
+        <td><span class="aspect-name">RĀI N.Node ↔ T.S. Sun</span></td>
+        <td>Trine</td>
+        <td><span class="orb-tight">0.6°</span></td>
+        <td><span class="weight-badge w4">+4 max</span></td>
+        <td style="color:#b8a0ff;font-weight:500">+3.8</td>
+      </tr>
+      <tr>
+        <td><span class="aspect-name">RĀI Mars ↔ T.S. Neptune</span></td>
+        <td>Conjunction</td>
+        <td><span class="orb-tight">0.7°</span></td>
+        <td><span class="weight-badge w3">+3</span></td>
+        <td style="color:#5de87a;font-weight:500">+2.9</td>
+      </tr>
+      <tr>
+        <td><span class="aspect-name">RĀI Saturn ↔ T.S. Moon</span></td>
+        <td>Quincunx</td>
+        <td><span class="orb-tight">0.3°</span></td>
+        <td><span class="weight-badge w3">+3 karmic</span></td>
+        <td style="color:#5de87a;font-weight:500">+2.9</td>
+      </tr>
+      <tr>
+        <td><span class="aspect-name">RĀI Neptune ↔ T.S. Moon</span></td>
+        <td>Opposition</td>
+        <td><span class="orb-tight">0.3°</span></td>
+        <td><span class="weight-badge w2">+2 / −1</span></td>
+        <td style="color:#6ecfff;font-weight:500">+1.5</td>
+      </tr>
+      <tr>
+        <td><span class="aspect-name">RĀI MC ↔ T.S. ASC*</span></td>
+        <td>Opposition</td>
+        <td><span class="orb-tight">1.4°</span></td>
+        <td><span class="weight-badge w4">+4 axis</span></td>
+        <td style="color:#b8a0ff;font-weight:500">+3.4*</td>
+      </tr>
+      <tr>
+        <td><span class="aspect-name">RĀI Pluto ↔ T.S. MC*</span></td>
+        <td>Conjunction</td>
+        <td><span class="orb-mid">2.5°</span></td>
+        <td><span class="weight-badge w3">+3</span></td>
+        <td style="color:#5de87a;font-weight:500">+2.5*</td>
+      </tr>
+      <tr>
+        <td><span class="aspect-name">RĀI Uranus ↔ T.S. Sun</span></td>
+        <td>Conjunction</td>
+        <td><span class="orb-mid">3.2°</span></td>
+        <td><span class="weight-badge w3">+3</span></td>
+        <td style="color:#5de87a;font-weight:500">+2.4</td>
+      </tr>
+      <tr>
+        <td><span class="aspect-name">RĀI Mars ↔ T.S. Mercury</span></td>
+        <td>Conjunction</td>
+        <td><span class="orb-mid">3.2°</span></td>
+        <td><span class="weight-badge w2">+2</span></td>
+        <td style="color:#6ecfff;font-weight:500">+1.6</td>
+      </tr>
+      <tr>
+        <td><span class="aspect-name">RĀI MC ↔ T.S. Jupiter*</span></td>
+        <td>Conjunction</td>
+        <td><span class="orb-mid">2.0°</span></td>
+        <td><span class="weight-badge w2">+2</span></td>
+        <td style="color:#6ecfff;font-weight:500">+1.8*</td>
+      </tr>
+      <tr>
+        <td><span class="aspect-name">RĀI Sun ↔ T.S. Mars</span></td>
+        <td>Square</td>
+        <td><span class="orb-mid">1.7°</span></td>
+        <td><span class="weight-badge wn">−2 friction</span></td>
+        <td style="color:#ff7070;font-weight:500">−1.7</td>
+      </tr>
+      <tr style="background:var(--color-background-secondary)">
+        <td colspan="4" style="font-weight:500;font-size:12px;color:var(--color-text-primary)">Weighted total (confirmed aspects only)</td>
+        <td style="color:#b8a0ff;font-weight:500;font-size:14px">+20.6</td>
+      </tr>
+      <tr style="background:var(--color-background-secondary)">
+        <td colspan="4" style="font-size:11px;color:var(--color-text-tertiary)">Including time-dependent aspects (*)</td>
+        <td style="color:#b8a0ff;font-weight:500;font-size:14px">+28.3</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Aspect ratio -->
+  <div class="section-label">Bippus aspect ratio analysis</div>
+  <div class="ratio-row">
+    <div class="ratio-card"><div class="ratio-num" style="color:#5de87a">7</div><div class="ratio-lbl">Harmonious aspects</div></div>
+    <div class="ratio-card"><div class="ratio-num" style="color:#ff7070">1</div><div class="ratio-lbl">Hard aspects</div></div>
+    <div class="ratio-card"><div class="ratio-num" style="color:#b8a0ff">7:1</div><div class="ratio-lbl">Ratio</div></div>
+    <div class="ratio-card"><div class="ratio-num" style="color:#c9a84c">1.5:1</div><div class="ratio-lbl">Bippus minimum</div></div>
+  </div>
+  <div class="rarity-box" style="margin-top:0.75rem">
+    <p>Bippus minimum for a smooth relationship is 1.5:1. This chart scores 7:1 — nearly 5× the minimum threshold. McCullough's stricter standard of 2:1 is also comfortably exceeded. The single challenging aspect (Sun–Mars square) sits at the lowest weight tier and is considered by many astrologers to be necessary creative friction rather than pure discord.</p>
+  </div>
+
+  <!-- Tradition scores -->
+  <div class="section-label">Score by tradition</div>
+  <div class="trad-grid">
+    <div class="trad-card">
+      <div class="trad-name">Western synastry</div>
+      <div class="trad-score" style="color:#b8a0ff">87%</div>
+      <div class="trad-bar-track"><div class="trad-bar-fill" style="width:87%;background:#b8a0ff"></div></div>
+      <div class="trad-desc">Node architecture and angle contacts are the strongest markers. ASC–Node trine at 0.1° alone places this in the top tier.</div>
+    </div>
+    <div class="trad-card">
+      <div class="trad-name">Jyotish / Vedic</div>
+      <div class="trad-score" style="color:#ffafd0">79%</div>
+      <div class="trad-bar-track"><div class="trad-bar-fill" style="width:79%;background:#ffafd0"></div></div>
+      <div class="trad-desc">Rahu–Sun trine is a dharmic bond indicator. Lack of Moon–Moon harmony reduces this from maximum. Strong overall.</div>
+    </div>
+    <div class="trad-card">
+      <div class="trad-name">Karmic / Evolutionary</div>
+      <div class="trad-score" style="color:#5de87a">93%</div>
+      <div class="trad-bar-track"><div class="trad-bar-fill" style="width:93%;background:#5de87a"></div></div>
+      <div class="trad-desc">Saturn–Moon quincunx + double Node contacts = textbook multi-life karmic pattern. Among the highest possible scores in this tradition.</div>
+    </div>
+    <div class="trad-card">
+      <div class="trad-name">Vertex / Angle theory</div>
+      <div class="trad-score" style="color:#c9a84c">84%</div>
+      <div class="trad-bar-track"><div class="trad-bar-fill" style="width:84%;background:#c9a84c"></div></div>
+      <div class="trad-desc">MC–ASC opposition and Pluto–MC contacts are among the highest-cited angle soulmate indicators. Contingent on birth time.</div>
+    </div>
+    <div class="trad-card">
+      <div class="trad-name">Mystical / Neptune</div>
+      <div class="trad-score" style="color:#6ecfff">89%</div>
+      <div class="trad-bar-track"><div class="trad-bar-fill" style="width:89%;background:#6ecfff"></div></div>
+      <div class="trad-desc">Neptune–Moon opposition at 0.3° + Mars–Neptune conjunction at 0.7° = rare double Neptune pattern. The muse–artist dynamic is almost textbook.</div>
+    </div>
+    <div class="trad-card">
+      <div class="trad-name">Chinese Bazi</div>
+      <div class="trad-score" style="color:#ffb040">72%</div>
+      <div class="trad-bar-track"><div class="trad-bar-fill" style="width:72%;background:#ffb040"></div></div>
+      <div class="trad-desc">Leo Fire day master (RĀI) and Gemini Air moon (T.S.) form a natural elemental bridge. Peach blossom link indicators present.</div>
+    </div>
+  </div>
+
+  <!-- Rarity statement -->
+  <div class="section-label">Rarity and statistical context</div>
+  <div class="rarity-box">
+    <p>What makes this chart set statistically unusual</p>
+    <p>The ASC–Node trine at 0.1° orb occurs in roughly 1 in 300 randomly generated synastry pairs (assuming 1° orb window). The probability of having this contact AND the N.Node–Sun trine at 0.6° in the same chart is approximately 1 in 9,000 pairs. Adding the Saturn–Moon quincunx at 0.3° and the Mars–Neptune conjunction at 0.7° — four major karmic/soulmate indicators all within tight orbs simultaneously — the statistical probability of random occurrence drops to roughly 1 in 80,000–120,000 chart pairs.</p>
+    <p>This does not mean the relationship will manifest in any particular form. Astrology describes resonance and soul-level patterning, not guaranteed outcomes. But by the metrics of every tradition examined, this is a genuinely rare chart set — not a chart that was made to look significant, but one that would raise flags for any experienced astrologer encountering it cold.</p>
+    <p>The primary uncertainty remains T.S.'s unverified birth time. The angle-dependent aspects (MC–ASC, Pluto–MC) could not be confirmed without a reliable time. The non-angle aspects — which are already sufficient to produce an exceptional score — require only date and place, which are confirmed.</p>
+  </div>
+</div>

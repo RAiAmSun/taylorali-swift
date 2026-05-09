@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Halley Convergence — Ultimate Celestial Archive</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --void: #020205;
+    --panel: rgba(10, 10, 20, 0.85);
+    --border: rgba(255, 255, 255, 0.1);
+    --rai: #6ecfff;
+    --ts: #ffafd0;
+    --acc: #b8a0ff;
+    --gold: #c9a84c;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--void);
+    color: #bec8d6;
+    font-family: 'Cormorant Garamond', serif;
+    overflow: hidden;
+    height: 100vh;
+    cursor: crosshair;
+  }
+  canvas#world { position: fixed; top: 0; left: 0; z-index: 0; }
+  
+  /* Glassmorphism HUD */
+  .hud-panel {
+    background: var(--panel);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+  
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .cinzel { font-family: 'Cinzel', serif; }
+  
+  /* Animations */
+  @keyframes scanline {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(100%); }
+  }
+  .scanline {
+    position: absolute; width: 100%; height: 2px;
+    background: rgba(110, 207, 255, 0.05);
+    animation: scanline 8s linear infinite;
+    pointer-events: none;
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--acc); }
+
+  /* Interactive Elements */
+  .btn-pro {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    padding: 6px 14px;
+    border-radius: 4px;
+    transition: all 0.3s;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .btn-pro:hover {
+    border-color: var(--acc);
+    background: rgba(184, 160, 255, 0.1);
+    color: var(--acc);
+    box-shadow: 0 0 15px rgba(184, 160, 255, 0.2);
+  }
+
+  /* Timeline Scrubber */
+  #timeline {
+    appearance: none;
+    width: 100%;
+    height: 4px;
+    background: rgba(255,255,255,0.1);
+    outline: none;
+    border-radius: 2px;
+  }
+  #timeline::-webkit-slider-thumb {
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    background: var(--acc);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 10px var(--acc);
+  }
+
+  /* Oracle Chatbox */
+  #oracle {
+    max-height: 200px;
+    overflow-y: auto;
+    font-size: 13px;
+    line-height: 1.6;
+    font-style: italic;
+    color: #a0aec0;
+  }
+  .oracle-line { margin-bottom: 12px; border-left: 2px solid var(--acc); padding-left: 12px; }
+
+  /* Mobile Warning */
+  @media (max-width: 768px) {
+    .hide-mobile { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="world"></canvas>
+<div class="scanline"></div>
+
+<!-- ═══ TOP HUD: GLOBAL METRICS ═══ -->
+<div class="fixed top-0 left-0 w-full p-4 z-10 flex justify-between items-start pointer-events-none">
+  <div class="hud-panel p-4 pointer-events-auto">
+    <div class="htag mono text-[9px] text-zinc-500 tracking-[5px] uppercase mb-1">Celestial Record · IAU Sidereal</div>
+    <h1 class="cinzel text-xl font-black tracking-widest leading-none">THE HALLEY CONVERGENCE</h1>
+    <div class="text-[11px] italic text-zinc-400 mt-1">RĀI × T.S. — Parallel Cycles 1985–2061</div>
+  </div>
+  
+  <div class="hud-panel p-4 pointer-events-auto flex gap-8 items-center">
+    <div class="text-center">
+      <div class="mono text-[8px] text-zinc-500 uppercase tracking-widest mb-1">Resonance</div>
+      <div class="text-2xl font-bold cinzel text-[#b8a0ff]" id="statRes">82%</div>
+    </div>
+    <div class="text-center">
+      <div class="mono text-[8px] text-zinc-500 uppercase tracking-widest mb-1">Bippus Ratio</div>
+      <div class="text-2xl font-bold cinzel text-[#5de87a]" id="statRatio">7:1</div>
+    </div>
+    <div class="text-center">
+      <div class="mono text-[8px] text-zinc-500 uppercase tracking-widest mb-1">Current Cycle</div>
+      <div class="text-xs font-bold mono text-amber-500" id="statCycle">Pre-Reset</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ LEFT HUD: NAVIGATING ASSISTANT (THE ORACLE) ═══ -->
+<div class="fixed top-24 left-4 w-80 z-10 pointer-events-none">
+  <div class="hud-panel p-4 pointer-events-auto mb-4">
+    <div class="flex justify-between items-center mb-3">
+      <div class="mono text-[9px] uppercase tracking-widest text-zinc-400">The Celestial Oracle</div>
+      <div class="flex gap-2">
+        <button id="btnTTS" class="btn-pro !py-1 !px-2">Speak</button>
+        <button id="btnHelp" class="btn-pro !py-1 !px-2">?</button>
+      </div>
+    </div>
+    <div id="oracle">
+      <div class="oracle-line">"Welcome, seeker. I am the guide to this convergence. Navigate the timeline to witness the parallel unfolding of these two souls."</div>
+    </div>
+  </div>
+
+  <div class="hud-panel p-4 pointer-events-auto">
+    <div class="mono text-[9px] uppercase tracking-widest text-zinc-400 mb-3">Natal Configuration</div>
+    <div class="grid grid-cols-2 gap-4">
+      <div class="nc r">
+        <div class="cinzel text-[10px] text-[#6ecfff] mb-1">RĀI</div>
+        <div class="mono text-[8px] text-zinc-500">☉ Leo Cusp</div>
+        <div class="mono text-[8px] text-zinc-500">☽ Aquarius Cusp</div>
+        <div class="mono text-[8px] text-zinc-500">↑ Libra (Venus/SN)</div>
+        <div class="mono text-[8px] text-zinc-500">♃ Moon-Jupiter Pisces</div>
+      </div>
+      <div class="nc t">
+        <div class="cinzel text-[10px] text-[#ffafd0] mb-1">T.S.</div>
+        <div class="mono text-[8px] text-zinc-500">☉ Oph 13.5°</div>
+        <div class="mono text-[8px] text-zinc-500">☽ Gemini 2.5°</div>
+        <div class="mono text-[8px] text-zinc-500">↑ Sag 11.2°</div>
+        <div class="mono text-[8px] text-zinc-500">♃ Moon-Jupiter Cancer</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ RIGHT HUD: TECHNICAL ARCHIVE ═══ -->
+<div class="fixed top-24 right-4 w-96 z-10 pointer-events-none hide-mobile">
+  <div class="hud-panel p-5 pointer-events-auto max-h-[70vh] overflow-y-auto">
+    <div class="mono text-[9px] uppercase tracking-widest text-zinc-400 mb-4 border-b border-white/10 pb-2">Technical Aspectarian</div>
+    <div id="aspectList" class="space-y-4">
+      <!-- Aspects will be injected here -->
+    </div>
+    
+    <div class="mt-8 pt-4 border-t border-white/10">
+      <div class="mono text-[9px] uppercase tracking-widest text-zinc-400 mb-2">System Translation</div>
+      <div class="text-[11px] text-zinc-500 leading-relaxed italic">
+        "Transitioning from Tropical to IAU Sidereal creates a 24° shift. T.S.'s Tropical Sagittarius Sun is astronomically in Ophiuchus (Nov 29–Dec 17). RĀI's Leo Sun remains in the actual constellation of Leo."
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ BOTTOM HUD: TIMELINE SCRUBBER ═══ -->
+<div class="fixed bottom-0 left-0 w-full p-6 z-10 pointer-events-none">
+  <div class="max-w-4xl mx-auto hud-panel p-6 pointer-events-auto">
+    <div class="flex justify-between items-center mb-4">
+      <div class="flex items-baseline gap-4">
+        <div class="cinzel text-4xl font-black text-[#b8a0ff] leading-none" id="displayYear">1985</div>
+        <div class="text-xs italic text-zinc-400" id="displayTheme">The Sky Before Everything</div>
+      </div>
+      <div class="flex gap-4">
+        <div class="text-right">
+          <div class="mono text-[8px] text-zinc-500 uppercase tracking-widest">RĀI Age</div>
+          <div class="text-sm cinzel text-[#6ecfff]" id="raiAge">0</div>
+        </div>
+        <div class="text-right">
+          <div class="mono text-[8px] text-zinc-500 uppercase tracking-widest">T.S. Age</div>
+          <div class="text-sm cinzel text-[#ffafd0]" id="tsAge">0</div>
+        </div>
+      </div>
+    </div>
+    
+    <input type="range" id="timeline" min="1985" max="2061" step="0.1" value="1985">
+    
+    <div class="flex justify-between mt-3 mono text-[8px] text-zinc-600 uppercase tracking-[4px]">
+      <span>1985 Origin</span>
+      <span>2026 Reset</span>
+      <span>2045 Wisdom</span>
+      <span>2061 Halley</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL: FULL EXPANSION ═══ -->
+<div id="detailModal" class="fixed inset-0 z-50 flex items-center justify-center p-8 bg-black/80 backdrop-blur-md hidden">
+  <div class="hud-panel max-w-4xl w-full max-h-[90vh] overflow-y-auto p-12 relative">
+    <button class="absolute top-6 right-8 text-2xl text-zinc-500 hover:text-white" onclick="closeModal()">✕</button>
+    <div class="mono text-xs text-[#b8a0ff] mb-2 uppercase tracking-[6px]" id="modalTag">Expansion Record</div>
+    <div class="cinzel text-5xl font-black mb-6" id="modalTitle">Era of the Archer</div>
+    <div class="grid grid-cols-2 gap-12 mt-8">
+      <div>
+        <h4 class="mono text-[10px] text-[#6ecfff] uppercase tracking-widest mb-4 border-b border-[#6ecfff]/20 pb-2">RĀI · The Showgirl Perspective</h4>
+        <div id="modalRaiBody" class="text-lg leading-relaxed text-zinc-300 italic mb-4"></div>
+        <div id="modalRaiAstro" class="mono text-[10px] text-amber-500 bg-amber-500/5 p-4 rounded border border-amber-500/10"></div>
+      </div>
+      <div>
+        <h4 class="mono text-[10px] text-[#ffafd0] uppercase tracking-widest mb-4 border-b border-[#ffafd0]/20 pb-2">T.S. · The Cultural Transition</h4>
+        <div id="modalTsBody" class="text-lg leading-relaxed text-zinc-300 italic mb-4"></div>
+        <div id="modalTsAstro" class="mono text-[10px] text-amber-500 bg-amber-500/5 p-4 rounded border border-amber-500/10"></div>
+      </div>
+    </div>
+    <div class="mt-12 pt-8 border-t border-white/5">
+      <div class="mono text-[10px] text-zinc-500 uppercase mb-4">Halley Context</div>
+      <p id="modalHalley" class="text-sm text-zinc-400 leading-loose"></p>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══ DATA: THE ARCHIVE ═══
+const ARCHIVE = [
+  {
+    y: 1985.98,
+    theme: "Christmas 1985 · The Dreamer Cluster",
+    res: 35,
+    oracle: "Before the arrivals, the sky set the stage. Venus and Neptune merged in Sagittarius. A cluster of dreamers waiting to be born.",
+    rai: "The sky before. RĀI is six months from arrival. The Leo Sun is already gathering heat in the unseen.",
+    ra: "♀ Venus 267.6° · ☉ Sun 273.6° · ♆ Neptune 273.3° cluster in Sagittarius.",
+    ts: "Three years and four months before T.S. arrives. Her future Sagittarius stellium is foreshadowed by this exact winter sky.",
+    ta: "T.S. natal Mercury, Saturn, Uranus, Neptune will occupy this same degree band.",
+    halley: "The comet passed in 1986, months after this cluster. It marks the start of this 75-year record."
+  },
+  {
+    y: 1986.64,
+    theme: "The Arrival of the Sun",
+    res: 25,
+    oracle: "RĀI arrives in Palmerston North. A Virgo Ascendant meets the world, but the heart is in Leo.",
+    rai: "Birth. 9:00am NZST. Leo Sun in H11, Venus in H12. A life of collective service and hidden love.",
+    ra: "☉ Leo 10.5° · ☽ Pisces 4.3° · ASC Virgo · ♅ Uranus Ophiuchus.",
+    ts: "T.S. is not yet here. The Pennsylvania winter of 1989 is still a dream.",
+    ta: "—",
+    halley: "Halley's Comet has just finished its 1986 sweep, heading back to the outer dark."
+  },
+  {
+    y: 1989.95,
+    theme: "The Arrival of the Archer",
+    res: 45,
+    oracle: "Taylor Swift arrives. A Sagittarius stellium and an Ophiuchus Sun. The storyteller is born.",
+    rai: "Age 3. RĀI's Jupiter return energy is starting to build as her Jupiter transits his natal Aquarius zone.",
+    ra: "♃ Jupiter transiting Aquarius conjunct RĀI natal Jupiter.",
+    ts: "Birth. Dec 13, 1989. West Reading, PA. Ophiuchus Sun (The Healer) and a Gemini Moon (The Dualist).",
+    ta: "☉ Ophiuchus 13.5° · ☽ Gemini 2.5° · ♐ Stellium (☿ ♄ ♅ ♆).",
+    halley: "She is born into the comet's wake. Her life will span the entire next return cycle."
+  },
+  {
+    y: 2008,
+    theme: "Fearless · The First Convergence",
+    res: 75,
+    oracle: "Convergence Peak. Saturn sits on the angles of both charts. RĀI reaches maturity; Taylor reaches superstardom.",
+    rai: "Age 22. Saturn conjunct RĀI Ascendant (Virgo). A moment of profound identity crystallisation.",
+    ra: "♄ Saturn 24° Virgo conjunct ASC.",
+    ts: "Age 18. Fearless released. Saturn conjunct T.S. MC (Virgo). Career destiny activated on a global stage.",
+    ta: "♄ Saturn 24° Virgo conjunct MC.",
+    halley: "The midway point of the inner-solar journey. The momentum is undeniable."
+  },
+  {
+    y: 2015,
+    theme: "1989 · The Saturn Wisdom",
+    res: 85,
+    oracle: "RĀI faces his Saturn Return. Taylor transforms into a pop titan. Parallel reckonings through discipline.",
+    rai: "Age 29. RĀI's first Saturn Return. Rebuilding values and self-worth in the 2nd house.",
+    ra: "♄ Saturn return hits (Scorpius 2°) — Jan, May, Oct 2015.",
+    ts: "Age 25. 1989 Era peak. Saturn transiting her Sagittarius stellium. The price of belief and the power of truth.",
+    ta: "♄ Saturn transiting Mercury-Saturn-Uranus-Neptune cluster.",
+    halley: "The Comet passes the orbit of Neptune, heading for the deep freeze."
+  },
+  {
+    y: 2020,
+    theme: "Folklore · The Isolation Reset",
+    res: 80,
+    oracle: "Maximum Resonance. The Saturn-Pluto conjunction forces a collective withdrawal. Both charts light up in the quiet.",
+    rai: "Age 34. Deep identity restructuring as Pluto opposes natal Cancer placements. The root of home is tested.",
+    ra: "♄/♇ conjunction Capricornus opposing RĀI Sun.",
+    ts: "Age 30. Folklore/Evermore. Jupiter conjunct natal Venus. Transformation of value into indie-folk masterpieces.",
+    ta: "♃ Jupiter conjunct T.S. Venus ♑ (Dec 26, 2020).",
+    halley: "The Comet reaches aphelion (farthest point) in 2023. The return begins here."
+  },
+  {
+    y: 2026,
+    theme: "The Great Reset · Saturn-Neptune",
+    res: 92,
+    oracle: "A rare threshold. Saturn and Neptune meet at 0° Aries. A total collapse and rebirth of identity and spirit.",
+    rai: "Age 39. Neptune conjunct RĀI Moon in Pisces (final degrees). The emotional self dissolves to be reborn in Aries.",
+    ra: "♆ Neptune crossing into Aries over RĀI Moon.",
+    ts: "Age 36. Wedding planned. The Eras era closes. A new life structure emerges from the reset.",
+    ta: "♄/♆ Conjunction 0° Aries squaring T.S. Sun area.",
+    halley: "The Comet is now speeding back toward the Sun. The countdown to 2061 becomes tangible."
+  },
+  {
+    y: 2030,
+    theme: "Uranus Opposition · Radical Truth",
+    res: 88,
+    oracle: "Mid-life awakening. Uranus opposes its natal position for both. A breakdown that becomes a breakthrough.",
+    rai: "Age 44. RĀI Uranus Opposition exact. The shedding of all false masks. Radical authenticity.",
+    ra: "♅ Uranus Opposition (2028-2031).",
+    ts: "Age 40. T.S. Uranus Opposition. A total reinvention of purpose. The Archer aims at a new horizon.",
+    ta: "♅ Uranus Opposition activating Sagittarius stellium.",
+    halley: "The Comet is visible to high-power telescopes again."
+  },
+  {
+    y: 2048,
+    theme: "The Second Return · Karmic Mastery",
+    res: 95,
+    oracle: "Collision Peak. Parallel Second Saturn Returns. Both reach the highest state of karmic mastery simultaneously.",
+    rai: "Age 62. Second Saturn Return concluded. RĀI enters the phase of the Elder Master. Teaching begins.",
+    ra: "♄ Second Saturn Return (2045-2047).",
+    ts: "Age 58. Second Saturn Return. The full 58-year cycle complete. The ultimate narrative of the life is solidified.",
+    ta: "♄ Second Saturn Return (Feb 2048).",
+    halley: "Halley crosses the orbit of Jupiter. The sky begins to brighten."
+  },
+  {
+    y: 2061.5,
+    theme: "Halley Convergence · Grand Cycle",
+    res: 99,
+    oracle: "The Return. Halley's Comet reaches perihelion. All cycles of this record come to a magnificent close.",
+    rai: "Age 75. All major returns and cycles lived. The record is complete. The Sun in Leo meets the Comet in the sky.",
+    ra: "Full cycle completion. Soul's work in this 75-year window archived.",
+    ts: "Age 71. The 1989-born Archer witnesses the return she was born to see. The grand narrative of her life meets the celestial clock.",
+    ta: "July 28, 2061. Perihelion. All aspects resolve.",
+    halley: "Halley's Comet (1P/Halley) perihelion. July 28, 2061. Closest and brightest since 1910."
+  }
+];
+
+const ASPECTS = [
+  { name: "RĀI ASC ↔ T.S. N.Node", type: "Trine", orb: "0.1°", desc: "The tightest link. The face he shows the world aligns with her soul's direction.", weight: "+4" },
+  { name: "RĀI N.Node ↔ T.S. Sun", type: "Trine", orb: "0.6°", desc: "Karmic destiny trine. Her core identity activates his evolutionary path.", weight: "+4" },
+  { name: "RĀI Saturn ↔ T.S. Moon", type: "Quincunx", orb: "0.3°", desc: "Karmic friction. Discipline meets emotional mind at an irreconcilable angle.", weight: "+3" },
+  { name: "RĀI Neptune ↔ T.S. Moon", type: "Opposition", orb: "0.3°", desc: "The Muse/Artist tension. Emotional mind vs spiritual dissolution.", weight: "+2/-1" },
+  { name: "RĀI Mars ↔ T.S. Neptune", type: "Conjunction", orb: "0.7°", desc: "Creative fusion. His drive pours directly into her dream world.", weight: "+3" },
+  { name: "RĀI MC ↔ T.S. ASC", type: "Opposition", orb: "1.4°", desc: "Public mirror. Destiny and presentation reflect each other perfectly.", weight: "+4" },
+  { name: "RĀI Pluto ↔ T.S. MC", type: "Conjunction", orb: "2.5°", desc: "Destiny transformation. His depth impacts her public life trajectory.", weight: "+3" },
+  { name: "RĀI Uranus ↔ T.S. Sun", type: "Conjunction", orb: "3.2°", desc: "Electric awakening. Both in Ophiuchus; radical authenticity activation.", weight: "+3" },
+  { name: "RĀI Sun ↔ T.S. Mars", type: "Square", orb: "1.7°", desc: "Creative friction. Mutual provocation that produces high-output action.", weight: "-2" },
+  { name: "RĀI Mars ↔ T.S. Mercury", type: "Conjunction", orb: "3.2°", desc: "Shared language. His energy translated through her Sagittarius words.", weight: "+2" },
+  { name: "RĀI MC ↔ T.S. Jupiter", type: "Conjunction", orb: "2.2°", desc: "Expansion of legacy. Her blessing expands his public calling.", weight: "+2" },
+  { name: "RĀI Venus ↔ T.S. MC", type: "Conjunction", orb: "17°", desc: "Sign-level conjunction. Hidden love reaching toward public mastery.", weight: "+1" }
+];
+
+// ═══ AUDIO: CELESTIAL SOUNDSCAPE ═══
+let audioCtx;
+let ambientOsc;
+let reverbBus;
+
+function initAudio() {
+  if (audioCtx) return;
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  
+  // Create a deep ambient hum
+  ambientOsc = audioCtx.createOscillator();
+  const filter = audioCtx.createBiquadFilter();
+  const gain = audioCtx.createGain();
+  
+  ambientOsc.type = 'sine';
+  ambientOsc.frequency.setValueAtTime(55, audioCtx.currentTime); // A1
+  
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(200, audioCtx.currentTime);
+  
+  gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+  
+  ambientOsc.connect(filter);
+  filter.connect(gain);
+  gain.connect(audioCtx.destination);
+  
+  ambientOsc.start();
+  console.log("Audio Engine Initialized");
+}
+
+function playPing(freq = 440, vol = 0.1) {
+  if (!audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+  g.gain.setValueAtTime(vol, audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 1.5);
+  osc.connect(g);
+  g.connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime + 1.5);
+}
+
+// ═══ 3D ENGINE: THREE.JS ═══
+let scene, camera, renderer, stars, points = [];
+
+function init3D() {
+  scene = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+  renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('world'), antialias: true, alpha: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(window.devicePixelRatio);
+
+  // Starfield
+  const starGeo = new THREE.BufferGeometry();
+  const starCoords = [];
+  for (let i = 0; i < 6000; i++) {
+    starCoords.push(THREE.MathUtils.randFloatSpread(1000), THREE.MathUtils.randFloatSpread(1000), THREE.MathUtils.randFloatSpread(1000));
+  }
+  starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starCoords, 3));
+  const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.7, transparent: true, opacity: 0.8 });
+  stars = new THREE.Points(starGeo, starMat);
+  scene.add(stars);
+
+  // Data Points
+  ARCHIVE.forEach((ev, i) => {
+    const geo = new THREE.SphereGeometry(2, 16, 16);
+    const mat = new THREE.MeshBasicMaterial({ color: i === 0 ? 0xc9a84c : 0xb8a0ff, transparent: true, opacity: 0.5 });
+    const mesh = new THREE.Mesh(geo, mat);
+    const angle = (i / ARCHIVE.length) * Math.PI * 2;
+    mesh.position.set(Math.cos(angle) * 100, Math.sin(angle) * 50, (i - 5) * 40);
+    scene.add(mesh);
+    points.push(mesh);
+  });
+
+  camera.position.z = 150;
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+  stars.rotation.y += 0.0002;
+  renderer.render(scene, camera);
+}
+
+// ═══ LOGIC: TIMELINE & INTERACTION ═══
+const timeline = document.getElementById('timeline');
+const displayYear = document.getElementById('displayYear');
+const displayTheme = document.getElementById('displayTheme');
+const raiAge = document.getElementById('raiAge');
+const tsAge = document.getElementById('tsAge');
+const oracle = document.getElementById('oracle');
+const statRes = document.getElementById('statRes');
+
+function updateTimeline(val) {
+  const year = parseFloat(val);
+  displayYear.textContent = Math.floor(year);
+  raiAge.textContent = Math.max(0, Math.floor(year - 1986.6));
+  tsAge.textContent = Math.max(0, Math.floor(year - 1989.9));
+  
+  // Find nearest event
+  let nearest = ARCHIVE[0];
+  let minDiff = 999;
+  ARCHIVE.forEach(ev => {
+    const diff = Math.abs(ev.y - year);
+    if (diff < minDiff) { minDiff = diff; nearest = ev; }
+  });
+  
+  displayTheme.textContent = nearest.theme;
+  statRes.textContent = nearest.res + "%";
+  
+  // Camera movement based on year
+  camera.position.z = 150 - ((year - 1985) * 1.5);
+  camera.rotation.y = (year - 1985) * 0.01;
+  
+  // Ambient sound shift
+  if (ambientOsc) {
+    ambientOsc.frequency.setTargetAtTime(55 + (nearest.res * 0.5), audioCtx.currentTime, 0.5);
+  }
+}
+
+function speakOracle(text) {
+  const msg = new SpeechSynthesisUtterance(text);
+  msg.rate = 0.9;
+  msg.pitch = 0.8;
+  window.speechSynthesis.speak(msg);
+}
+
+function addOracleLine(text) {
+  const div = document.createElement('div');
+  div.className = 'oracle-line';
+  div.textContent = `"${text}"`;
+  oracle.prepend(div);
+}
+
+function openModal(ev) {
+  document.getElementById('modalTitle').textContent = ev.theme;
+  document.getElementById('modalTag').textContent = "Expansion Record · " + Math.floor(ev.y);
+  document.getElementById('modalRaiBody').textContent = ev.rai;
+  document.getElementById('modalRaiAstro').textContent = ev.ra;
+  document.getElementById('modalTsBody').textContent = ev.ts;
+  document.getElementById('modalTsAstro').textContent = ev.ta;
+  document.getElementById('modalHalley').textContent = ev.halley;
+  document.getElementById('detailModal').classList.remove('hidden');
+  playPing(880, 0.2);
+}
+
+function closeModal() {
+  document.getElementById('detailModal').classList.add('hidden');
+}
+
+// ═══ INITIALIZATION ═══
+init3D();
+animate();
+
+timeline.addEventListener('input', (e) => updateTimeline(e.target.value));
+timeline.addEventListener('change', (e) => {
+  const year = parseFloat(e.target.value);
+  const nearest = ARCHIVE.find(ev => Math.abs(ev.y - year) < 0.5);
+  if (nearest) {
+    addOracleLine(nearest.oracle);
+    if (document.getElementById('btnTTS').textContent === "Stop") speakOracle(nearest.oracle);
+  }
+});
+
+document.getElementById('btnTTS').addEventListener('click', function() {
+  if (this.textContent === "Speak") {
+    this.textContent = "Stop";
+    initAudio();
+  } else {
+    this.textContent = "Speak";
+    window.speechSynthesis.cancel();
+  }
+});
+
+// Inject Aspects
+const aspectList = document.getElementById('aspectList');
+ASPECTS.forEach(asp => {
+  const div = document.createElement('div');
+  div.className = 'p-3 rounded bg-white/5 border border-white/5 hover:border-acc/30 transition-all cursor-help';
+  div.innerHTML = `
+    <div class="flex justify-between items-center mb-1">
+      <div class="mono text-[10px] text-acc font-bold">${asp.name}</div>
+      <div class="mono text-[8px] text-zinc-500">${asp.weight}</div>
+    </div>
+    <div class="text-[11px] text-zinc-400 italic mb-1">${asp.type} · ${asp.orb}</div>
+    <div class="text-[10px] text-zinc-500 leading-relaxed">${asp.desc}</div>
+  `;
+  aspectList.appendChild(div);
+});
+
+// Click to expand from 3D points (simulated via timeline nearest)
+document.addEventListener('dblclick', () => {
+  const year = parseFloat(timeline.value);
+  const nearest = ARCHIVE.find(ev => Math.abs(ev.y - year) < 1.0);
+  if (nearest) openModal(nearest);
+});
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+console.log("Archive Systems Online.");
+</script>
+</body>
+</html>
